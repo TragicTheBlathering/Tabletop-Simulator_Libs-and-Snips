@@ -1,0 +1,22 @@
+local debug = {}
+
+function debug.zprint(var,title)
+    if (type(var) == "table") then
+        if title then
+            print(logString(var,'-- '..title..' --'))
+        else
+            print(logString(var))
+        end
+    else
+        if title then print('-- '..title..' --') end
+        print(var)
+    end
+end
+
+
+
+function debug.test()
+  printToAll('---=== DEBUG ===---', 'Green')
+end
+
+return debug

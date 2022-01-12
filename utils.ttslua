@@ -1,0 +1,24 @@
+local utils = {}
+utils.common = {}
+utils.debug =require('/_libs/debug')
+--------------------------------------------------------------------------------
+    function utils.common.returnSetUpObj(findme)
+        local zone = Global.getTable('SetUpZone') -- SetUpZone = getObjectFromGUID('d4e5c2').getObjects()
+        if not zone then
+            printToAll('ERROR : Must have a global variable in Global.SetUpZone = zone.getObjects()','Red')
+        else
+            for _, obj in pairs(SetUpZone) do
+                if obj.getName() == findme then
+                    return obj
+                end
+            end
+        end
+    end
+--------------------------------------------------------------------------------
+
+ --- Test Function
+    function utils.test()
+      printToAll('----=== YES IT IS WORKING ===----', 'Green')
+    end
+
+return utils

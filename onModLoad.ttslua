@@ -1,0 +1,38 @@
+local onModLoad = {}
+--------------------------------------------------------------------------------
+--- MEGA FREEZE -- (Freeze by tag "MegaFreeze", and Freeze by SetupZone) func('scriptzoneGUID', 'anyting')
+    function onModLoad.MegaFreeze(guid, switch)
+        -- Freeze Objects Tag with MegaFreeze
+        for _, obj in pairs(getObjectsWithTag('MegaFreeze')) do
+            if switch then
+                if obj.getDescription() == 'Set' then
+                    obj.interactable = false
+                end
+            else
+                obj.interactable = false
+            end
+        end
+
+        --Freeze Objects in SetUpZone
+        if not switch and guid then
+            for k,o in pairs(getObjectFromGUID(guid).getObjects()) do
+                o.interactable = false
+            end
+        end
+    end
+--------------------------------------------------------------------------------
+--- Fix Hand Zones - Fixe HandZone Height
+    function onModLoad.FixHandZones(yOffset)
+        local Y = yOffset
+        local playerList = Player.getAvailableColors()
+        for _, colour in ipairs(playerList) do
+            local pramsOLD = Player[colour].getHandTransform()
+            pramsNew = {position={pramsOLD.position.x, Y, pramsOLD.position.z}
+                       ,rotation={0,180,0}
+                       ,scale={15.50, 5.40, 0.82}
+                       }
+            Player[colour].setHandTransform(pramsNew, 1)
+        end
+    end
+--------------------------------------------------------------------------------
+return onModLoad

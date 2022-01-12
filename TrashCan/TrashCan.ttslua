@@ -1,0 +1,8 @@
+---TrashCan
+local TrashCan = {}
+
+function TrashCan.test(Trashcan)
+    printToAll('Running : '..Trashcan.getName(), 'Yellow')
+end
+
+return TrashCan

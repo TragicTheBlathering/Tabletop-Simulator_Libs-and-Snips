@@ -1,8 +1,151 @@
----TrashCan
 local TrashCan = {}
+--------------------------------------------------------------------------------
+-- Global Variabels
+local zprint = require("/_libs/debug").zprint
+local tool = {}
+      tool.place    = require("/_libs/PositionUtils")
+      tool.waitFor  = require("/_libs/WaitUtils")
+      tool.findOBJs = require("/_libs/findObjs")
+      tool.string   = require("/_libs/StringUtils")
+      tool.cast     = require("/_libs/TrashCan/TrashCast")
 
-function TrashCan.test(Trashcan)
-    printToAll('Running : '..Trashcan.getName(), 'Yellow')
+local TAGS = {Delete='Delete', Deck='Deck', Card='Card', Object='Object', ScriptZone='ScriptZone', SpecialCase = 'SpecialCase'}
+--------------------------------------------------------------------------------
+--- Function to Call from EVENT ------------------------------------------------
+function TrashCan.process(TrashBag)
+    ProcessBagContents(TrashBag)
+end
+--------------------------------------------------------------------------------
+--- ProcessBagContents(TrashBag)------------------------------------------------
+function ProcessBagContents(TrashBag)
+    local AllTrashContents = FindObjsInTrashBagFromData(TrashBag)
+    Wait.frames(function() StartCascade(Trashbag, AllTrashContents) end, 5) -- wait 5 frames to ensure deck spawn properly
+end
+--------------------------------------------------------------------------------
+--- StartCascade(Trashbag, AllTrashContents) -----------------------------------
+function StartCascade(Trashbag, AllTrashContents)
+    local ActionList = setActionList(AllTrashContents)
+    local UniqueCastLocations = setUniqueCastLocations(ActionList)
+    zprint(ActionList,'ActionList')
+    zprint(UniqueCastLocations,'UniqueCastLocations')
 end
 
+--------------------------------------------------------------------------------
+--- setUniqueCastLocations(ActionList) -----------------------------------------
+function setUniqueCastLocations(ActionList)
+    --TAGS = {Delete='Delete', Deck='Deck', Card='Card', Object='Object', ScriptZone='ScriptZone', SpecialCase = 'SpecialCase'}
+    local uniqueList = {} -- uniqueList
+    for k,v in pairs(ActionList) do
+        uniqueList[v.GMNotes] = v.type
+    end
+    return tool.cast.findContainer(uniqueList)
+end
+
+--- setActionList(DataList) ----------------------------------------------------
+function setActionList(DataList)
+    local ActionList = {}
+        for _, deck in pairs(DataList.Deck) do
+            for k,v in pairs(deck.getObjects()) do
+                ActionList[v.guid] = {type=TAGS.Card, action='move', container=deck, name=v.name, description=v.description, GMNotes=stripTrashGMNotes(v.gm_notes, TAGS.Card)}
+            end
+        end
+
+        for k,v in pairs(DataList.Card) do
+            ActionList[v.GUID] = {type=TAGS.Card, action='move', container=TrashBag, name=v.Nickname, description=v.Description, GMNotes=stripTrashGMNotes(v.GMNotes, TAGS.Card)}
+        end
+
+        for k,v in pairs(DataList.Object) do
+            ActionList[v.GUID] = {type=TAGS.Object, action='move', container=TrashBag, name=v.Nickname, description=v.Description, GMNotes=stripTrashGMNotes(v.GMNotes, TAGS.Object)}
+        end
+
+        for k,v in pairs(DataList.ScriptZone) do
+            ActionList[v.GUID] = {type=TAGS.ScriptZone, action='move', container=TrashBag, name=v.Nickname, description=v.Description, GMNotes=stripTrashGMNotes(v.GMNotes, TAGS.ScriptZone)}
+        end
+
+        for k,v in pairs(DataList.Delete) do
+            ActionList[v.GUID] = {type=TAGS.Delete, action='delete', container=TrashBag, name=v.Nickname, description=v.Description, GMNotes=stripTrashGMNotes(v.GMNotes, TAGS.Delete)}
+        end
+
+        for k,v in pairs(DataList.SpecialCase) do
+            ActionList[v.GUID] = {type=TAGS.SpecialCase, action='special', container=TrashBag, name=v.Nickname, description=v.Description, GMNotes=stripTrashGMNotes(v.GMNotes, TAGS.SpecialCase)}
+        end
+    return ActionList
+end
+
+function stripTrashGMNotes(GMNotes, Tag)
+    local key = nil
+    if Tag == TAGS.Delete      then key = 'Delete'  elseif
+       Tag == TAGS.Card        then key = 'D.Name_' elseif
+       Tag == TAGS.Object      then key = 'D.Bag_'  elseif
+       Tag == TAGS.ScriptZone  then key = 'D.Zone_' elseif
+       Tag == TAGS.SpecialCase then key = 'D.Special_'
+    end
+
+    local lines = tool.string.splitString(GMNotes)
+    for k, line in pairs(lines) do
+        if string.find(string.lower(line), string.lower(key), 1, true) then
+            key = line
+        end
+    end
+    return key
+end
+
+--------------------------------------------------------------------------------
+--- FindObjsInTrashBagFromData(TrashBag) ---------------------------------------
+function FindObjsInTrashBagFromData(TrashBag)
+    local z = {}
+        local tags = TAGS
+        local data_trashContentsALL = TrashBag.getData().ContainedObjects
+
+        local delete_ObjList       = {}
+        local explode_DeckList     = {}
+        local move_CardList        = {}
+        local move_ObjList         = {}
+        local move_ScrtipZoneList  = {}
+        local move_SpecialCaseList = {}
+
+        if not data_trashContentsALL then
+            printToAll('Error : '..TrashBag.getGUID()..' : TRASH EMPTY!!', 'RED') --getData() returned nothing, this should never happen!
+        else
+            delete_ObjList         = tool.findOBJs.viaGMNote(data_trashContentsALL, tags.Delete)
+            move_ScrtipZoneList    = tool.findOBJs.viaGMNote(data_trashContentsALL, modifyKey(tags.ScriptZone))
+            move_SpecialCaseList   = tool.findOBJs.viaGMNote(data_trashContentsALL, modifyKey(tags.SpecialCase))
+            explode_DeckList       = explodeDecks(TrashBag, tool.findOBJs.viaType_FromData(data_trashContentsALL, 'Deck'))
+            move_CardList          = tool.findOBJs.viaType_FromData(data_trashContentsALL, 'Card')
+            move_ObjList           = tool.findOBJs.viaGMNote(data_trashContentsALL, modifyKey(tags.Object))
+        end
+
+        z[tags.Delete]       = delete_ObjList
+        z[tags.Deck]         = explode_DeckList
+        z[tags.Card]         = move_CardList
+        z[tags.Object]       = move_ObjList
+        z[tags.ScriptZone]   = move_ScrtipZoneList
+        z[tags.SpecialCase]  = move_SpecialCaseList
+        --zprint(z, 'Z : TrashCanCode')
+    return z
+end
+
+--- explodeDecks(TrashBag, deckList) -------------------------------------------
+function explodeDecks(TrashBag, deckList)
+    local explodeList = {}
+    for k,v in pairs(deckList) do
+        local o = TrashBag.takeObject({guid=v.GUID})
+        o.setPosition(tool.place.TopOrBot_ofObject(TrashBag,'top')+Vector(20,0,0))
+        o.setRotation(Vector(0,180,180))
+        o.setLock(true)
+        table.insert(explodeList, o)
+    end
+    return explodeList
+end
+
+function modifyKey(key)
+    --print(key)
+    if key == TAGS.Object      then key = 'D.Bag_'     elseif
+       key == TAGS.SpecialCase then key = 'D.Special_' elseif
+       key == TAGS.ScriptZone  then key = 'D.Zone_'
+    end
+    return key
+end
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 return TrashCan

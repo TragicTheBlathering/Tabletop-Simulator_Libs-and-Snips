@@ -1,0 +1,42 @@
+local findObjs = {}
+local ustring = require("/_libs/StringUtils")
+local zprint = require("/_libs/debug").zprint
+--------------------------------------------------------------------------------
+--- find_ByType_FromData(objData, key) -'Card'-'Deck'-etc ".Name" field--MUST USE getData()
+function findObjs.viaType_FromData(objData, key)
+    local z = {}
+    for _, obj in pairs(objData) do
+        if obj.Name == key then
+            table.insert(z, obj)
+        end
+    end
+    return z
+end
+
+function findObjs.viaGMNote(trashContents, key)
+ --local gmnotes = 'GMNotes' -- Set GMNotes for getData() else gm_notes for getObjects()
+    local gmnotes = 'GMNotes'
+    if not trashContents[1].GUID then
+        gmnotes = 'gm_notes'
+    else gmnotes = 'GMNotes' end
+
+    local z = {}
+    for _, trashObj in pairs(trashContents) do
+        local gmList = ustring.splitString(trashObj[gmnotes])
+        for _,type in pairs(gmList) do
+            if string.find(string.lower(type), string.lower(key), 1, true) then
+                table.insert(z,trashObj)
+            end
+        end
+    end
+    return z
+end
+
+--- Test Function
+function findObjs.test()
+ printToAll('----=== YES findObjs IS WORKING ===----', 'Green')
+end
+
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+return findObjs

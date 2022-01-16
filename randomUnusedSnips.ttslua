@@ -1,0 +1,190 @@
+object.getTags() -> Table gets the Tags attached to an object.
+object.setTags(Table tags) sets the Tags attached to an object.
+object.addTag(string label) adds the Tag to the object.
+object.removeTag(string label) removes the Tag from the object.
+object.hasTag(string label) -> bool checks if the object has the Tag.
+object.hasAnyTag() -> bool checks if the object has any Tags.
+object.hasMatchingTag(other) -> bool checks if the other object has a matching Tag with this object.
+scripting_zone.getObjects() will utilize Tags attached to the zone, unless you override with scripting_zone.getObjects(true)
+deck.spread(distance) uses the spread action on the deck.
+getObjectsWithTag(string tag)
+getObjectsWithAnyTags({tag, tag...})
+getObjectsWithAllTags({tag, tag...})
+
+if string.find(string.lower(line), string.lower(key), 1, true) then
+
+for i = 10,1,-1 do print(i) end
+for i = 1,10,1 do print(i) end
+
+--------------------------------------------------------------------------------
+function hasAllTags(tagTable, searchTable) -- OLD COMPARE TABLE CODE
+    local table_SearchMe = {}
+    for _, tTag in pairs(tagTable) do
+        for _, sTag in pairs(searchTable) do
+            if string.find(string.lower(tTag), string.lower(sTag), 1, true) then
+                table_SearchMe[sTag] = true
+            end
+        end
+    end
+
+    local found_all = true
+    for _, tag in ipairs(searchTable) do
+        if not table_SearchMe[tag] then
+            found_all = false
+        end
+    end
+
+    return found_all
+end
+--------------------------------------------------------------------------------
+--- Abandoned 1/2 Writen HASALLTAGS form GEETDATA Code... save for latter... willl probably need it
+--------------------------------------------------------------------------------
+function viaHasAllTags(tagTable, searchTable)
+    local counts = { }
+    for i, _ in ipairs(tagTable) do
+        if string.find(string.lower(_), 'id_', 1, true) then
+            _ = 'ID_'
+        end
+
+        if counts[_] then
+            counts[_] = counts[_] + 1
+        else
+            counts[_] = 1
+        end
+    end
+    local found_all = true
+    for i, _ in ipairs(searchTable) do
+        if not counts[_] or counts[_] == 0 then
+            found_all = false
+            break
+        end
+        counts[_] = counts[_] - 1
+    end
+    return found_all
+end
+
+if hasAllTags(obj.Tags, tKey) then
+    print('FoundTags')
+    if obj.Name == Name then
+        print('--== '..string.upper(Name)..' ==-- : '..obj.Name)
+    end
+end
+
+if justDecks then
+    print(Name..' : Lump in Decks') -- Deck inherit Tags from cards.. usee a TRUE pram to find decks and cards at once
+else
+    print(obj.Name)
+    if obj.Name == Name then
+        print('--== '..string.upper(NAME)..' ==-- : '..obj.Name)
+    end
+
+    if obj.Name == 'Deck' then -- and obj.Name == Name then
+        print('--== DECK ==-- : '..obj.Name..' : '..Name)
+    else
+        print('--== OBJECT ==-- : '..obj.Name..' : '..Name)
+    end
+end
+
+
+for k,obj in pairs(objData) do
+    if obj.Tags then
+        if obj.Name == 'Deck' then -- and obj.Name == Name then
+            if obj.Name == Name then
+                print('DECK : '..obj.Name..' : '..Name)
+                table.insert(z, obj)
+            end
+        else
+            if hasAllTags(obj.Tags, tKey) then
+                if obj.Name == Name then
+                    print('OTHER : '..obj.Name..' : '..Name)
+                    table.insert(z, obj)
+                end
+            end
+        end
+    end
+end
+
+
+function FindObjs.viaHasAllTags_FromDATA(objData, tKey, type)
+    print(type)
+    local z = {}
+        local trueTable = {}
+        local foundObjs = {}
+        for _, key in pairs(tKey) do
+            trueTable[key] = {inData = false}
+        end
+
+        for k,obj in pairs(objData) do
+            if obj.Tags then
+                for _, tag in pairs(obj.Tags) do
+                    for _, key in pairs(tKey) do
+                        if string.find(string.lower(tag), string.lower(key), 1, true) then
+                            trueTable[key].inData = true
+                            foundObjs[obj] = obj
+                        end
+                    end
+                end
+            end
+        end
+
+        local foundall = true
+        for k, found in pairs(trueTable) do
+            if not found.inData then
+                foundall = false
+            end
+        end
+
+        if foundall then
+            for k,obj in pairs(foundObjs) do
+                print(obj.Nickname) -- Found Object matching all
+                table.insert(z, obj)
+            end
+        end
+    return z
+end
+
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+
+A good approach would be processing the cards from the highest index to the lower ones so you will not have this potential index shifting problem. So, use this:
+for j = #cardsInDeck, 1, -1 do
+    local card = cardsInDeck[j]
+    -- ...
+end
+--[[ -- Debug Prints
+print('\nmove_BagList')
+for k, v in pairs(move_BagList) do
+print('   : '..v.Nickname)
+end
+
+print('\nexplode_DeckList')
+for k, v in pairs(explode_DeckList) do
+print('   : '..v.Nickname)
+end
+
+print('\nexplode_DeckList')
+for k, v in pairs(explode_DeckList) do
+    print('   : '..v.getName())
+end
+
+print('\nmove_CardList')
+for k, v in pairs(move_CardList) do
+print('   : '..v.Nickname)
+end
+
+print('\ndelete_ObjList')
+for k, v in pairs(delete_ObjList) do
+print('   : '..v.Nickname)
+end
+
+print('\nmove_ScrtipZoneList')
+for k, v in pairs(move_ScrtipZoneList) do
+print('   : '..v.Nickname)
+end
+
+print('\nmove_SpecialCaseList')
+for k, v in pairs(move_SpecialCaseList) do
+print('   : '..v.Nickname)
+end
+]]

@@ -1,9 +1,9 @@
-local findObjs = {}
+local FindObjs = {}
 local ustring = require("/_libs/StringUtils")
 local zprint = require("/_libs/debug").zprint
 --------------------------------------------------------------------------------
 --- find_ByType_FromData(objData, key) -'Card'-'Deck'-etc ".Name" field--MUST USE getData()
-function findObjs.viaType_FromData(objData, key)
+function FindObjs.viaType_FromDATA(objData, key)
     local z = {}
     for _, obj in pairs(objData) do
         if obj.Name == key then
@@ -13,7 +13,135 @@ function findObjs.viaType_FromData(objData, key)
     return z
 end
 
-function findObjs.viaGMNote(trashContents, key)
+--[[function FindObjs.viaHasAnyTag(objTags, key, doSearch)
+    for k,tag in pairs(objTags) do
+        if doSearch then
+            print(key)
+            if string.find(string.lower(tag), string.lower(key), 1, true) then
+                return true
+            end
+        else
+            if string.lower(tag) == string.lower(key) then
+                return true
+            end
+        end
+    end
+    return false
+end]]
+
+function FindObjs.tagFound(tags, keys, useFind)
+    if useFind then
+        for _, tag in pairs(tags) do
+            for _, key in pairs(keys) do
+                if string.find(string.lower(tag), string.lower(key), 1, true) then
+                    return true
+                end
+            end
+        end
+    else
+        for _, tag in pairs(tags) do
+            for _, key in pairs(keys) do
+                if string.lower(tag) == string.lower(key) then
+                    return true
+                end
+            end
+        end
+    end
+    return false
+end
+    --[[doSearch = false
+    if doSearch then doSearch = true end
+
+    print(tag)
+
+    if doSearch then
+        if tag[1] == nil then
+            --print('NotTable : Search')
+            if string.find(string.lower(tag), string.lower(key), 1, true) then
+                return true
+            end
+        else
+            print('Table : Search')
+        end
+    else
+        if tag[1] == nil then
+            --print('NotTable : Exact')
+            if string.lower(tag) == string.lower(key) then
+                return true
+            end
+        else
+            print('Table : Exact')
+        end
+    end
+    return false]]
+
+function FindObjs.vHasAnyTag_DATA(ObjData, SearchKeys, useFind)
+    local z = {}
+        for k,obj in pairs(ObjData) do
+            if obj.Tags then
+                if FindObjs.tagFound(obj.Tags, SearchKeys, useFind) then
+                    table.insert(z, obj)
+                end
+            end
+        end
+    return z
+end
+
+--[[
+for _,key in pairs(SearchTable) do
+    if FindObjs.tagFound(tag, key, useFind) then
+        print(key)
+        table.insert(z, obj)
+    end
+end
+]]
+
+--[[
+function FindObjs.viaHasTag_FromDATA(doSearch, ObjData, ...) -- (doSearch: bool, getData(), strings)
+    tableKeys = {...}
+    local z = {}
+        for k,obj in pairs(ObjData) do
+            if obj.Tags then
+                for _, tag in pairs(obj.Tags) do
+                    for _,key in pairs(tableKeys) do
+                        if FindObjs.tagFound(tag, key, doSearch) then
+                            print(key)
+                            table.insert(z, obj)
+                        end
+                    end
+                    break
+                end
+            end
+        end
+    return z
+end]]
+
+--[[function FindObjs.viaHasTag_FromDATA(ObjData, Key)
+    local z = {}
+        for k,obj in pairs(ObjData) do
+            if obj.Tags then
+                if FindObjs.viaHasTag(obj.Tags, Key) then
+                    table.insert(z, obj)
+                end
+            end
+        end
+    return z
+end]]
+
+function FindObjs.ifStringFoundInOBJGMNote(obj, key)
+    local gmnotes = 'GMNotes'
+    if not obj.GUID then
+        gmnotes = 'gm_notes'
+    else gmnotes = 'GMNotes' end
+
+    if string.find(string.lower(obj[gmnotes]), string.lower(key), 1, true) then
+        print('FUCK YOU')
+        return true
+    end
+    return false
+end
+
+function FindObjs.viaGMNote(trashContents, key)
  --local gmnotes = 'GMNotes' -- Set GMNotes for getData() else gm_notes for getObjects()
     local gmnotes = 'GMNotes'
     if not trashContents[1].GUID then
@@ -33,10 +161,10 @@ function findObjs.viaGMNote(trashContents, key)
 end
 
 --- Test Function
-function findObjs.test()
- printToAll('----=== YES findObjs IS WORKING ===----', 'Green')
+function FindObjs.test()
+ printToAll('----=== YES FindObjs IS WORKING ===----', 'Green')
 end
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
-return findObjs
+return FindObjs

@@ -16,6 +16,7 @@ end
 function setVariables()
     if not DiscardPlatforms then
         DiscardPlatforms = {}
+        DiscardPlatforms.Discard_Zone              = {size=nil, posOffset=nil, platforms=getObjectsWithTag('Discard_Zone')}
         DiscardPlatforms.Discard_Bag               = {size=Vector(3,3,3), posOffset=Vector(0, 0, 0), platforms=getObjectsWithTag('Discard_Bag')}
         DiscardPlatforms.Discard_Platform_Small    = {size=Vector(2.5,1,4), posOffset=Vector(0, 0, 0), platforms=getObjectsWithTag('Discard_Platform_Small')}
         DiscardPlatforms.Discard_Platform_Large    = {size=Vector(3,1,5), posOffset=Vector(0, 0, 0), platforms=getObjectsWithTag('Discard_Platform_Large')}
@@ -25,31 +26,25 @@ end
 
 --------------------------------------------------------------------------------
 --- Cast Code ------------------------------------------------------------------
-function CastByString(uniqueObjTypeList)
-    for platformType, objType in pairs(DiscardPlatforms) do
-        for _, platform in pairs(DiscardPlatforms[platformType].platforms) do
-            local targetType = platform.getGMNotes()
-            for objType, _ in pairs(uniqueObjTypeList) do
-                if string.find(string.lower(targetType), string.lower(objType), 1, true) then
-                    --print(targetType..' : '..platform.getName()..' : '..platformType..' : '..objType)
-                    uniqueObjTypeList[targetType] = cast(platform, platformType)
-                end
-            end
-        end
+function CastByString(TrashIDList)
+    --zprint(TrashIDList, 'TrashIDList')
+    for k,v in pairs(TrashIDList) do
+        local target = getObjectsWithAllTags({'DiscardTarget', k})[1]
+        TrashIDList[k] = cast(target, DiscardPlatforms[target.getGMNotes()])
     end
-    --zprint(uniqueObjTypeList, 'uniqueObjTypeList')
-    return uniqueObjTypeList
+    --zprint(TrashIDList, 'TrashIDList')
+    return TrashIDList
 end
 
 function cast(platform, platformType)
     --zprint(DiscardPlatforms,'DiscardPlatforms')
     local z = {}
     local zone = Physics.cast({
-                    origin=platform.getPosition() + DiscardPlatforms[platformType].posOffset,
+                    origin=platform.getPosition() + platformType.posOffset,
                     direction={0,1,0},
                     type=3,
                     max_distance=0,
-                    size=DiscardPlatforms[platformType].size,
+                    size=platformType.size,
                     debug=ShowCast,
                 })
     z = ProcessCast(platform, zone)

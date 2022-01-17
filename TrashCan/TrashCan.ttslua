@@ -1,10 +1,29 @@
 local TrashCan = {}
 --------------------------------------------------------------------------------
 -- temp debugging functions to be removed
-function zprintSorted(SortedTrashContents)
-    print('\nSortedTrashContents')
-    for k,v in pairs(SortedTrashContents) do
-        print('('..tostring(#v)..') : '..k)
+function zprintSorted(t, switch)
+    local size = 0
+    --for _ in pairs(mytabl5) do size5 = size5 + 1 end
+    if not switch then
+        print('\nSortedTrashContents (truncated)')
+        for k,v in pairs(t) do
+            for _ in pairs(v) do size = size + 1 end
+            print('('..size..') : '..k)
+            size = 0
+        end
+    else
+        print(logString(t, '\nSortedTrashContents'))
+    end
+end
+
+function zprintMoveTable(t, switch)
+    if not switch then
+        print('\nFinal Move Table (truncated)')
+        for k,v in pairs(t) do
+            print('  '..v.guid)
+        end
+    else
+        print(logString(t, '\nFinal Move Table'))
     end
 end
 --------------------------------------------------------------------------------
@@ -18,7 +37,7 @@ local tool = {}
       tool.string   = require("/_libs/StringUtils")
       tool.cast     = require("/_libs/TrashCan/TrashCast")
 
-local TAGS = {Delete='Delete', SmallCard='Small', LargeCard='Large', Bag='Bag', ScriptZone='ScriptZone', SpecialCase='SpecialCase', Deck='Deck'}
+local TYPES = {Delete='Delete', SmallCard='Small', LargeCard='Large', Bag='Bag', ScriptZone='ScriptZone', SpecialCase='SpecialCase', Deck='Deck'}
 --------------------------------------------------------------------------------
 --- Function to Call from EVENT ------------------------------------------------
 function TrashCan.process(TrashBag)
@@ -28,18 +47,31 @@ end
 --- ProcessBagContents(TrashBag)------------------------------------------------
 function runTrash(TrashBag)
     local SortedTrashContents = FindObjsInTrashBagFromData(TrashBag)
-    zprintSorted(SortedTrashContents)
-
-    --Wait.frames(function() StartCascade(TrashBag, AllTrashContents) end, 5) -- wait 5 frames to ensure deck spawn properly
+    Wait.frames(function() StartCascade(TrashBag, SortedTrashContents) end, 5) -- wait 5 frames to ensure deck spawn properly
 end
 --------------------------------------------------------------------------------
 --- StartCascade(Trashbag, AllTrashContents) -----------------------------------
-function StartCascade(TrashBag, AllTrashContents)
-    --local ActionList = setActionList(AllTrashContents, TrashBag)
-    --zprint(ActionList,'ActionList')
-    --local UniqueCastLocations = setUniqueCastLocations(ActionList)
-    --zprint(UniqueCastLocations,'UniqueCastLocations')
-    --processTrashCanList(ActionList, UniqueCastLocations, TrashBag)
+function StartCascade(TrashBag, SortedTrashContents)
+    --printToAll('SEARCH FOUND DECKS AND ADD CARDS TO LIST', 'Yellow')
+    SortedTrashContents = getListfromDecks(SortedTrashContents)
+    local castTargets = setUniqueCastLocations(SortedTrashContents)
+    zprint(castTargets,'castTargets')
+    --zprintSorted(SortedTrashContents)
+end
+
+function getListfromDecks(SortedTrashContents)
+    if SortedTrashContents[TYPES.Deck] ~= {} then
+        for _, deck in pairs(SortedTrashContents[TYPES.Deck]) do
+            for k, obj in pairs(deck.getData().ContainedObjects) do
+                if tool.findOBJs.tagFound(obj.Tags, {'DiscardMe_'..TYPES.LargeCard}) then
+                    SortedTrashContents[TYPES.LargeCard][obj] = {container = TrashBag, index=k-1, id=tool.findOBJs.findTagString(obj.Tags, 'id_')}
+                elseif tool.findOBJs.tagFound(obj.Tags, {'DiscardMe_'..TYPES.SmallCard}) then
+                    SortedTrashContents[TYPES.SmallCard][obj] = {container = TrashBag, index=k-1, id=tool.findOBJs.findTagString(obj.Tags, 'id_')}
+                end
+            end
+        end
+    end
+    return SortedTrashContents
 end
 
 function processTrashCanList(ActionList, UniqueCastLocations, TrashBag)
@@ -55,139 +87,308 @@ function processTrashCanList(ActionList, UniqueCastLocations, TrashBag)
 end
 
 --------------------------------------------------------------------------------
---- setUniqueCastLocations(ActionList) -----------------------------------------
-function setUniqueCastLocations(ActionList)
-    zprint(ActionList,'ActionList')
-
-    local z = {}
-    for k,v in pairs(ActionList) do
-        for _,tag in pairs(v.Tags) do
-            if string.find(string.lower(tag), 'id_', 1, true) then
-                --print(tag)
-                z[tag] = 'DiscardMe'
-            --[[elseif string.find(string.lower(tag), 'discard_bag', 1, true) then
-                z[tag] = 'DiscardMe']]
+--- setUniqueCastLocations(SortedTrashContents) -----------------------------------------
+function setUniqueCastLocations(dataList)
+    local uniqueList = {}
+    for type,data in pairs(dataList) do
+        if not (type == TYPES.SpecialCase or type == TYPES.Deck or type == TYPES.Delete) then
+            for obj,v in pairs(data) do
+                uniqueList[v.id] = v.id
             end
         end
     end
-
-    zprint(z,'z')
-
-    --[[local uniqueList = {} -- uniqueList
-    for k,v in pairs(ActionList) do
-        uniqueList[v.GMNotes] = v.type
-    end
-    return tool.cast.findContainer(uniqueList)]]
-    return {}
-end
-
---- setActionList(DataList) ----------------------------------------------------
-function setActionList(DataList, TrashBag)
-    --zprint(DataList,'DataList')
-    local ActionList = {}
-        for _, deck in pairs(DataList.Deck) do
-            for k,v in pairs(deck.getObjects()) do
-                ActionList[v] = {type=TAGS.Card, guid=v.guid, Tags=v.tags, container=deck} -- action='move'
-            end
-        end
-
-        for k,v in pairs(DataList.Card) do
-            ActionList[v] = {type=TAGS.Card, guid=v.GUID, Tags=v.Tags, container=TrashBag}
-        end
-
-        for k,v in pairs(DataList.Bag) do
-            ActionList[v] = {type=TAGS.Bag, guid=v.GUID, Tags=v.Tags, container=TrashBag}
-        end
-
-        for k,v in pairs(DataList.ScriptZone) do
-            ActionList[v] = {type=TAGS.ScriptZone, guid=v.GUID, Tags=v.Tags, container=TrashBag}
-        end
-
-        for k,v in pairs(DataList.Delete) do
-            ActionList[v] = {type=TAGS.Delete, guid=v.GUID, Tags=v.Tags, container=TrashBag}
-        end
-
-        for k,v in pairs(DataList.SpecialCase) do
-            ActionList[v] = {type=TAGS.SpecialCase, guid=v.GUID, Tags=v.Tags, container=TrashBag}
-        end
-
-    return ActionList
+    return tool.cast.findContainer(uniqueList)
 end
 --------------------------------------------------------------------------------
 --- FindObjsInTrashBagFromData(TrashBag) ---------------------------------------
 function FindObjsInTrashBagFromData(TrashBag)
     local z = {}
-        local type = TAGS
+        z[TYPES.SpecialCase]  = {}
+        z[TYPES.ScriptZone]   = {}
+        z[TYPES.SmallCard]    = {}
+        z[TYPES.LargeCard]    = {}
+        z[TYPES.Deck]         = {} --explodeDecks(TrashBag, explode_DeckList)
+        z[TYPES.Bag]          = {}
+        z[TYPES.Delete]       = {}
+        local data_trashContentsALL = TrashBag.getData().ContainedObjects
+
+        if not data_trashContentsALL then
+            printToAll('Error : '..TrashBag.getGUID()..' : TRASH EMPTY!!', 'RED') --getData() returned nothing, this should never happen!
+        else
+            for k,obj in ipairs(data_trashContentsALL) do
+                if obj.Tags then
+                    local id = nil
+                    if obj.Name == 'Card' then
+                        if tool.findOBJs.tagFound(obj.Tags, {'DiscardMe_'..TYPES.LargeCard}) then --print('FOUND : '..TYPES.LargeCard)
+                            z[TYPES.LargeCard][obj] = {container = TrashBag, index=k-1, id=tool.findOBJs.findTagString(obj.Tags, 'id_')}
+
+                         elseif tool.findOBJs.tagFound(obj.Tags, {'DiscardMe_'..TYPES.SmallCard}) then --print('FOUND : '..TYPES.SmallCard)
+                            z[TYPES.SmallCard][obj] = {container = TrashBag, index=k-1, id=tool.findOBJs.findTagString(obj.Tags, 'id_')}
+                        end
+
+                     elseif obj.Name == 'Deck' then --print('FOUND : '..TYPES.Deck)
+                        z[TYPES.Deck][obj] = {container = TrashBag, index=k-1}
+
+                     elseif tool.findOBJs.tagFound(obj.Tags, {'DiscardMe_'..TYPES.SpecialCase}) then --print('FOUND : '..TYPES.SpecialCase)
+                        z[TYPES.SpecialCase][obj] = {container = TrashBag, index=k-1}
+
+                     elseif tool.findOBJs.tagFound(obj.Tags, {'DiscardMe_'..TYPES.ScriptZone}) then --print('FOUND : '..TYPES.ScriptZone)
+                        z[TYPES.ScriptZone][obj] = {container = TrashBag, index=k-1, id=tool.findOBJs.findTagString(obj.Tags, 'id_')}
+
+                     elseif tool.findOBJs.tagFound(obj.Tags, {'DiscardMe_'..TYPES.Bag}) then --print('FOUND : '..TYPES.Bag)
+                        z[TYPES.Bag][obj] = {container = TrashBag, index=k-1, id=tool.findOBJs.findTagString(obj.Tags, 'id_')}
+
+                     elseif tool.findOBJs.tagFound(obj.Tags, {'DeleteMe'}) then --print('FOUND : '..TYPES.Delete)
+                        z[TYPES.Delete][obj] = {container = TrashBag, index=k-1}
+                    end
+                end
+            end
+        end
+    --zprintSorted(z)
+    z[TYPES.Deck] = explodeDecks(TrashBag, z[TYPES.Deck])
+    return z
+end
+--- explodeDecks(TrashBag, deckList) -------------------------------------------
+function explodeDecks(TrashBag, deckList)
+    local z = {}
+        local indexesToRemove = {}
+        for k, v in pairs (deckList) do
+            table.insert(indexesToRemove, v.index)
+        end
+
+        table.sort(indexesToRemove, function(a,b) return a>b end) -- sort table in reverse
+        local X = -10
+
+        for _,indexToRemove in ipairs (indexesToRemove) do
+            local o = TrashBag.takeObject({ index = indexToRemove })
+            o.setPosition(tool.place.TopOrBot_ofObject(TrashBag,'top')+Vector(X,0,8))
+            o.setRotation(Vector(0,180,180))
+            o.setLock(true)
+            X = X + o.getBounds().size.x+0.2
+            table.insert(z, o)
+        end
+    return z
+end
+
+--[[
+--- setActionList(DataList) ----------------------------------------------------
+function setActionList(SortedTrashContents, TrashBag)
+    --zprint(SortedTrashContents[TAGS.SmallCard])
+    --local move_SmallCardList = SortedTrashContents[TAGS.SmallCard]
+    --local move_LargeCardList = SortedTrashContents[TAGS.LargeCard]
+    --{Delete='Delete', SmallCard='Small', LargeCard='Large', Bag='Bag', ScriptZone='ScriptZone', SpecialCase='SpecialCase', Deck='Deck'}
+    local ActionList = {}
+        for _, deck in pairs(SortedTrashContents.Deck) do
+            for k,obj in pairs(deck.getData().ContainedObjects) do
+                if tool.findOBJs.tagFound(obj.Tags, {'DiscardMe_'..TAGS.LargeCard}) then
+                    SortedTrashContents[TAGS.LargeCard][obj] = deck
+                elseif tool.findOBJs.tagFound(obj.Tags, {'DiscardMe_'..TAGS.SmallCard}) then
+                    SortedTrashContents[TAGS.SmallCard][obj] = deck
+                end
+            end
+        end
+    --zprintSorted(SortedTrashContents)
+    --zprintSorted(SortedTrashContents, 'SortedTrashContents')
+
+    for k,v in pairs(SortedTrashContents) do
+        if k ~= 'Deck' then
+            for q,e in pairs(v) do
+                if q.Nickname ~= nil then
+                    zprint(q.Nickname)
+                end
+            end
+        end
+    end
+    return ActionList
+end
+]]
+
+--[[
+
+function zzzzzFindObjsInTrashBagFromData(TrashBag)
+    local z = {}
         local data_trashContentsALL = TrashBag.getData().ContainedObjects
 
         if not data_trashContentsALL then
             printToAll('Error : '..TrashBag.getGUID()..' : TRASH EMPTY!!', 'RED') --getData() returned nothing, this should never happen!
         else
             local found_DiscardObjs = tool.findOBJs.vHasAnyTag_DATA(data_trashContentsALL, {'DeleteMe','DiscardMe_'}, true)--Small','DiscardMe_Large','DiscardMe_Bag','DiscardMe_Special','DiscardMe_ScriptZone')
-            z = SortObjects(TrashBag, found_DiscardObjs, type)
+            z = SortObjects(TrashBag, found_DiscardObjs)
         end
     return z
 end
 
-function SortObjects(TrashBag, found_DiscardObjs, type)
-    local delete_ObjList = {}       --
-    local explode_DeckList = {}     --
-    local move_SmallCardList = {}   --
-    local move_LargeCardList = {}     --
-    local move_BagList = {}         --
-    local move_ScrtipZoneList = {}  --
-    local move_SpecialCaseList = {} --
+function SortObjects(TrashBag, found_DiscardObjs)
+    local z = {}
+        z[TYPES.SpecialCase]  = {}
+        z[TYPES.ScriptZone]   = {}
+        z[TYPES.SmallCard]    = {}
+        z[TYPES.LargeCard]    = {}
+        z[TYPES.Deck]         = {} --explodeDecks(TrashBag, explode_DeckList)
+        z[TYPES.Bag]          = {}
+        z[TYPES.Delete]       = {}
+    local decks = {}
+        for k, obj in ipairs(found_DiscardObjs) do
+            if obj.Tags then
+                -- FIND CARDS
+                if obj.Name == 'Card' then
+                    if tool.findOBJs.tagFound(obj.Tags, {'DiscardMe_'..TYPES.LargeCard}) then --print('FOUND : '..TYPES.LargeCard)
+                        z[TYPES.LargeCard][obj] = {container = TrashBag, index=k-1}
 
-    for _, obj in pairs(found_DiscardObjs) do
-        if obj.Tags then
-            if obj.Name == 'Card' then
-                if tool.findOBJs.tagFound(obj.Tags, {'DiscardMe_'..type.LargeCard}) then
-                    table.insert(move_LargeCardList, obj)
-                elseif tool.findOBJs.tagFound(obj.Tags, {'DiscardMe_'..type.SmallCard}) then
-                    table.insert(move_SmallCardList, obj)
+                    elseif tool.findOBJs.tagFound(obj.Tags, {'DiscardMe_'..TYPES.SmallCard}) then --print('FOUND : '..TYPES.SmallCard)
+                        z[TYPES.SmallCard][obj] = {container = TrashBag, index=k-1}
+                    end
+
+                elseif obj.Name == 'Deck' then --print('FOUND : '..TYPES.Deck)
+                    z[TYPES.Deck][obj] = {container = TrashBag, index=k-1}
+
+                elseif tool.findOBJs.tagFound(obj.Tags, {'DiscardMe_'..TYPES.SpecialCase}) then --print('FOUND : '..TYPES.SpecialCase)
+                    z[TYPES.SpecialCase][obj] = {container = TrashBag, index=k-1}
+
+                elseif tool.findOBJs.tagFound(obj.Tags, {'DiscardMe_'..TYPES.ScriptZone}) then --print('FOUND : '..TYPES.ScriptZone)
+                    z[TYPES.ScriptZone][obj] = {container = TrashBag, index=k-1}
+
+                elseif tool.findOBJs.tagFound(obj.Tags, {'DiscardMe_'..TYPES.Bag}) then --print('FOUND : '..TYPES.Bag)
+                    z[TYPES.Bag][obj] = {container = TrashBag, index=k-1}
+
+                elseif tool.findOBJs.tagFound(obj.Tags, {'DeleteMe'}) then --print('FOUND : '..TYPES.Delete)
+                    z[TYPES.Delete][obj] = {container = TrashBag, index=k-1}
                 end
 
-            elseif obj.Name == 'Deck' then
-                table.insert(explode_DeckList, obj)
-
-            elseif tool.findOBJs.tagFound(obj.Tags, {'DiscardMe_'..type.SpecialCase}) then
-                table.insert(move_SpecialCaseList, obj)
-
-            elseif tool.findOBJs.tagFound(obj.Tags, {'DiscardMe_'..type.ScriptZone}) then
-                table.insert(move_ScrtipZoneList, obj)
-
-            elseif tool.findOBJs.tagFound(obj.Tags, {'DiscardMe_'..type.Bag}) then
-                table.insert(move_BagList, obj)
-
-            elseif tool.findOBJs.tagFound(obj.Tags, {'DeleteMe'}) then
-                table.insert(delete_ObjList, obj)
             end
         end
-    end
-
-    local z = {}
-        z[type.SpecialCase]  = move_SpecialCaseList
-        z[type.ScriptZone]   = move_ScrtipZoneList
-        z[type.SmallCard]    = move_SmallCardList
-        z[type.LargeCard]    = move_LargeCardList
-        z[type.Deck]         = explodeDecks(TrashBag, explode_DeckList)
-        z[type.Bag]          = move_BagList
-        z[type.Delete]       = delete_ObjList
+        z[TYPES.Deck] = explodeDecks(TrashBag, z[TYPES.Deck])
+        --print('\n\n')
+        --zprintSorted(z)
     return z
 end
-
---- explodeDecks(TrashBag, deckList) -------------------------------------------
-function explodeDecks(TrashBag, deckList)
-    local z = {}
-    for k,v in pairs(deckList) do
-        local o = TrashBag.takeObject({guid=v.GUID})
-        o.setPosition(tool.place.TopOrBot_ofObject(TrashBag,'top')+Vector(20,0,0))
-        o.setRotation(Vector(0,180,180))
-        o.setLock(true)
-        table.insert(z, o)
-    end
-    return z
+]]
+--[[
+for k,v in pairs(deckList) do
+    local o = TrashBag.takeObject({guid=v.GUID})
+    o.setPosition(tool.place.TopOrBot_ofObject(TrashBag,'top')+Vector(20,0,0))
+    o.setRotation(Vector(0,180,180))
+    o.setLock(true)
+    table.insert(z, o)
 end
+]]
+
+--[[
+indexesToRemove = {}
+for _,objectInfo in ipairs (container.getObjects()) do
+  if objectInfo.nickname == "Name To Find" then
+    table.insert(indexesToRemove, objectInfo.index)
+  end
+end
+table.sort(indexesToRemove, function(a,b) return a>b end) -- sort table in reverse
+for _,indexToRemove in ipairs (indexesToRemove) do
+  container.takeObject({ index = indexToRemove, position = Vector(0,2,0), })
+end
+1) find all matching objectInfos and insert into a table
+2) reverse-sort the table
+3) take the objects using the index option of .takeObject() (rather than the guid option)
+]]
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 return TrashCan
+
+--[[
+    for k,v in pairs(SortedTrashContents.SmallCard) do
+        ActionList[v] = {targetType=TAGS.SmallCard, guid=v.GUID, Tags=v.Tags, container=TrashBag}
+    end
+
+    for k,v in pairs(SortedTrashContents.LargeCard) do
+        ActionList[v] = {targetType=TAGS.LargeCard, guid=v.GUID, Tags=v.Tags, container=TrashBag}
+    end
+
+    for k,v in pairs(SortedTrashContents.Bag) do
+        ActionList[v] = {targetType=TAGS.Bag, guid=v.GUID, Tags=v.Tags, container=TrashBag}
+    end
+
+    for k,v in pairs(SortedTrashContents.ScriptZone) do
+        ActionList[v] = {targetType=TAGS.ScriptZone, guid=v.GUID, Tags=v.Tags, container=TrashBag}
+    end
+
+    for k,v in pairs(SortedTrashContents.SpecialCase) do
+        ActionList[v] = {targetType=TAGS.SpecialCase, guid=v.GUID, Tags=v.Tags, container=TrashBag}
+    end
+
+    for k,v in pairs(SortedTrashContents.Delete) do
+        ActionList[v] = {targetType=TAGS.Delete, guid=v.GUID, Tags=v.Tags, container=TrashBag}
+    end
+]]
+
+--[[
+for _, obj in pairs(found_DiscardObjs) do
+    if obj.Tags then
+        if obj.Name == 'Card' then
+            if tool.findOBJs.tagFound(obj.Tags, {'DiscardMe_'..type.LargeCard}) then
+                table.insert(move_LargeCardList, obj)
+            elseif tool.findOBJs.tagFound(obj.Tags, {'DiscardMe_'..type.SmallCard}) then
+                table.insert(move_SmallCardList, obj)
+            end
+
+        elseif obj.Name == 'Deck' then
+            table.insert(explode_DeckList, obj)
+
+        elseif tool.findOBJs.tagFound(obj.Tags, {'DiscardMe_'..type.SpecialCase}) then
+            table.insert(move_SpecialCaseList, obj)
+
+        elseif tool.findOBJs.tagFound(obj.Tags, {'DiscardMe_'..type.ScriptZone}) then
+            table.insert(move_ScrtipZoneList, obj)
+
+        elseif tool.findOBJs.tagFound(obj.Tags, {'DiscardMe_'..type.Bag}) then
+            table.insert(move_BagList, obj)
+
+        elseif tool.findOBJs.tagFound(obj.Tags, {'DeleteMe'}) then
+            table.insert(delete_ObjList, obj)
+        end
+    end
+end
+]]
+--[[
+local delete_ObjList = {}       --
+local explode_DeckList = {}     --
+local move_SmallCardList = {}   --
+local move_LargeCardList = {}     --
+local move_BagList = {}         --
+local move_ScrtipZoneList = {}  --
+local move_SpecialCaseList = {} --
+
+for _, obj in pairs(found_DiscardObjs) do
+    if obj.Tags then
+        if obj.Name == 'Card' then
+            if tool.findOBJs.tagFound(obj.Tags, {'DiscardMe_'..type.LargeCard}) then
+                table.insert(move_LargeCardList, obj)
+            elseif tool.findOBJs.tagFound(obj.Tags, {'DiscardMe_'..type.SmallCard}) then
+                table.insert(move_SmallCardList, obj)
+            end
+
+        elseif obj.Name == 'Deck' then
+            table.insert(explode_DeckList, obj)
+
+        elseif tool.findOBJs.tagFound(obj.Tags, {'DiscardMe_'..type.SpecialCase}) then
+            table.insert(move_SpecialCaseList, obj)
+
+        elseif tool.findOBJs.tagFound(obj.Tags, {'DiscardMe_'..type.ScriptZone}) then
+            table.insert(move_ScrtipZoneList, obj)
+
+        elseif tool.findOBJs.tagFound(obj.Tags, {'DiscardMe_'..type.Bag}) then
+            table.insert(move_BagList, obj)
+
+        elseif tool.findOBJs.tagFound(obj.Tags, {'DeleteMe'}) then
+            table.insert(delete_ObjList, obj)
+        end
+    end
+end
+
+local z = {}
+    z[type.SpecialCase]  = move_SpecialCaseList
+    z[type.ScriptZone]   = move_ScrtipZoneList
+    z[type.SmallCard]    = move_SmallCardList
+    z[type.LargeCard]    = move_LargeCardList
+    z[type.Deck]         = explodeDecks(TrashBag, explode_DeckList)
+    z[type.Bag]          = move_BagList
+    z[type.Delete]       = delete_ObjList
+]]

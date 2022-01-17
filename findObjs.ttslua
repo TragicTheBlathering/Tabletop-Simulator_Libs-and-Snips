@@ -28,6 +28,13 @@ end
     end
     return false
 end]]
+function FindObjs.findTagString(tagTable, str)
+    for k, line in pairs(tagTable) do
+        if string.find(string.lower(line), string.lower(str), 1, true) then
+            return line
+        end
+    end
+end
 
 function FindObjs.tagFound(tags, keys, useFind)
     if useFind then

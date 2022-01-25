@@ -13,21 +13,6 @@ function FindObjs.viaType_FromDATA(objData, key)
     return z
 end
 
---[[function FindObjs.viaHasAnyTag(objTags, key, doSearch)
-    for k,tag in pairs(objTags) do
-        if doSearch then
-            print(key)
-            if string.find(string.lower(tag), string.lower(key), 1, true) then
-                return true
-            end
-        else
-            if string.lower(tag) == string.lower(key) then
-                return true
-            end
-        end
-    end
-    return false
-end]]
 function FindObjs.findTagString(tagTable, str)
     for k, line in pairs(tagTable) do
         if string.find(string.lower(line), string.lower(str), 1, true) then
@@ -56,31 +41,6 @@ function FindObjs.tagFound(tags, keys, useFind)
     end
     return false
 end
-    --[[doSearch = false
-    if doSearch then doSearch = true end
-
-    print(tag)
-
-    if doSearch then
-        if tag[1] == nil then
-            --print('NotTable : Search')
-            if string.find(string.lower(tag), string.lower(key), 1, true) then
-                return true
-            end
-        else
-            print('Table : Search')
-        end
-    else
-        if tag[1] == nil then
-            --print('NotTable : Exact')
-            if string.lower(tag) == string.lower(key) then
-                return true
-            end
-        else
-            print('Table : Exact')
-        end
-    end
-    return false]]
 
 function FindObjs.vHasAnyTag_DATA(ObjData, SearchKeys, useFind)
     local z = {}
@@ -93,47 +53,6 @@ function FindObjs.vHasAnyTag_DATA(ObjData, SearchKeys, useFind)
         end
     return z
 end
-
---[[
-for _,key in pairs(SearchTable) do
-    if FindObjs.tagFound(tag, key, useFind) then
-        print(key)
-        table.insert(z, obj)
-    end
-end
-]]
-
---[[
-function FindObjs.viaHasTag_FromDATA(doSearch, ObjData, ...) -- (doSearch: bool, getData(), strings)
-    tableKeys = {...}
-    local z = {}
-        for k,obj in pairs(ObjData) do
-            if obj.Tags then
-                for _, tag in pairs(obj.Tags) do
-                    for _,key in pairs(tableKeys) do
-                        if FindObjs.tagFound(tag, key, doSearch) then
-                            print(key)
-                            table.insert(z, obj)
-                        end
-                    end
-                    break
-                end
-            end
-        end
-    return z
-end]]
-
---[[function FindObjs.viaHasTag_FromDATA(ObjData, Key)
-    local z = {}
-        for k,obj in pairs(ObjData) do
-            if obj.Tags then
-                if FindObjs.viaHasTag(obj.Tags, Key) then
-                    table.insert(z, obj)
-                end
-            end
-        end
-    return z
-end]]
 
 function FindObjs.ifStringFoundInOBJGMNote(obj, key)
     local gmnotes = 'GMNotes'

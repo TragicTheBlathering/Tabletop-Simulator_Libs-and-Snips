@@ -152,7 +152,9 @@ for _,objectInfo in ipairs (container.getObjects()) do
     table.insert(indexesToRemove, objectInfo.index)
   end
 end
+
 table.sort(indexesToRemove, function(a,b) return a>b end) -- sort table in reverse
+
 for _,indexToRemove in ipairs (indexesToRemove) do
   container.takeObject({ index = indexToRemove, position = Vector(0,2,0), })
 end
@@ -161,7 +163,18 @@ end
 3) take the objects using the index option of .takeObject() (rather than the guid option)
 
 ipairs() on that - 1 (getData().ContainedObjects
+
+-- call this whenever you make your change
+startLuaCoroutine(self, "UILoading")
+function UILoading()
+  while not UI.loading do
+    coroutine.yield(0)
+    log(".")
+  end
+  log("UI Loaded")
+  retur
 --------------------------------------------------------------------------------
+http://lua-users.org/wiki/CopyTable
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 

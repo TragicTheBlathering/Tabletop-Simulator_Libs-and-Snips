@@ -4,64 +4,70 @@ local TrashCast = {}
 local ShowCast = true -- cast debug visial
 local zprint = require("/_libs/debug").zprint
 local DiscardPlatforms = nil
+local YOffset = 3
 --local ustring = require("/_libs/StringUtils")
+function setVariables()
+    if not DiscardPlatforms then
+        DiscardPlatforms = {}
+        DiscardPlatforms.DiscardType_Zone  = {size=Vector{1,1,1},   posOffset=Vector(0, 0, 0)}--, platforms=getObjectsWithTag('Discard_Zone')}
+        DiscardPlatforms.DiscardType_Bag   = {size=Vector(3,3,3),   posOffset=Vector(0, 0, 0)}--, platforms=getObjectsWithTag('Discard_Bag')}
+        DiscardPlatforms.DiscardType_Small = {size=Vector(2.5,1,4), posOffset=Vector(0, 0, 0)}--, platforms=getObjectsWithTag('Discard_Platform_Small')}
+        DiscardPlatforms.DiscardType_Large = {size=Vector(3,1,5),   posOffset=Vector(0, 0, 0)}--, platforms=getObjectsWithTag('Discard_Platform_Large')}
+    end
+end
+
 --------------------------------------------------------------------------------
 --- Main Function to Call ------------------------------------------------------
 function TrashCast.findContainer(data)
     setVariables()
-    --CastByString(data)
     return CastByString(data)
 end
-
-function setVariables()
-    if not DiscardPlatforms then
-        DiscardPlatforms = {}
-        DiscardPlatforms.Discard_Zone              = {size=nil, posOffset=nil, platforms=getObjectsWithTag('Discard_Zone')}
-        DiscardPlatforms.Discard_Bag               = {size=Vector(3,3,3), posOffset=Vector(0, 0, 0), platforms=getObjectsWithTag('Discard_Bag')}
-        DiscardPlatforms.Discard_Platform_Small    = {size=Vector(2.5,1,4), posOffset=Vector(0, 0, 0), platforms=getObjectsWithTag('Discard_Platform_Small')}
-        DiscardPlatforms.Discard_Platform_Large    = {size=Vector(3,1,5), posOffset=Vector(0, 0, 0), platforms=getObjectsWithTag('Discard_Platform_Large')}
-    end
-
-end
-
 --------------------------------------------------------------------------------
 --- Cast Code ------------------------------------------------------------------
 function CastByString(TrashIDList)
-    --zprint(TrashIDList, 'TrashIDList')
-    for k,v in pairs(TrashIDList) do
-        local target = getObjectsWithAllTags({'DiscardTarget', k})[1]
-        TrashIDList[k] = cast(target, DiscardPlatforms[target.getGMNotes()])
+    for id,kind in pairs(TrashIDList) do
+        local target = getObjectsWithAllTags({'DiscardTarget', id})
+        if target[1] then target=target[1] end
+        TrashIDList[id] = cast(target, DiscardPlatforms['DiscardType_'..kind], kind)
     end
-    --zprint(TrashIDList, 'TrashIDList')
     return TrashIDList
 end
 
-function cast(platform, platformType)
-    --zprint(DiscardPlatforms,'DiscardPlatforms')
-    local z = {}
-    local zone = Physics.cast({
-                    origin=platform.getPosition() + platformType.posOffset,
-                    direction={0,1,0},
-                    type=3,
-                    max_distance=0,
-                    size=platformType.size,
-                    debug=ShowCast,
-                })
-    z = ProcessCast(platform, zone)
-    return z
+function cast(target, platformType, kind)
+    local size = Vector(0,0,0)
+        if string.lower(kind) == 'zone' then
+            size = target.getScale()
+        else
+            size = platformType.size
+        end
+
+    local zone = Physics.cast({ origin=target.getPosition() + platformType.posOffset,
+                                direction={0,1,0},
+                                type=3,
+                                max_distance=0,
+                                size=size,
+                                debug=ShowCast})
+    return ProcessCast(target, zone, kind)
 end
 
-function ProcessCast(platform, zone)
+function ProcessCast(target, zone, kind)
     local z = {}
-    for k, found in pairs(zone) do
-        local obj = found.hit_object
-        if obj.type == 'Card' or obj.type == 'Deck' or obj.type == 'Bag' then
-            z.target = obj
+    local noCDB = true -- no card, deck or bag at cast location
+        for k,found in pairs(zone) do
+            local obj = found.hit_object
+            if (obj.type == 'Card' or obj.type == 'Deck' or obj.type == 'Bag') then
+                z.target = obj
+                noCDB = false
+            end
+            if obj == target then
+                z.platform = obj
+            end
+            if noCDB then
+                z.target = target
+            end
         end
-        if obj == platform then
-            z.platform = obj
-        end
-    end
+        z.Y=YOffset
+        z.kind=kind
     return z
 end
 

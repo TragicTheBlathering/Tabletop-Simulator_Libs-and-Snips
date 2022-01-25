@@ -1,0 +1,28 @@
+local TakeObjects = {}
+local zprint = require("/_libs/debug").zprint
+--------------------------------------------------------------------------------
+--- ReverseIndex ---------------------------------------------------------------
+function TakeObjects.reverseIndex(ContainedObjects, switch)
+    local z = {}
+        local getdata = false; if ContainedObjects[1].Nickname ~= nil then getdata = true end
+
+        for i, obj in ipairs(ContainedObjects) do
+            local index = i; if getdata then index = index-1 else index = obj.index end
+            if switch then
+                for key,find in pairs(switch) do
+                    if obj[key] == find then
+                        table.insert(z, index)
+                    end
+                end
+            else
+                table.insert(z, index)
+            end
+        end
+
+    table.sort(z, function(a,b) return a>b end)
+    return z
+end
+
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+return TakeObjects

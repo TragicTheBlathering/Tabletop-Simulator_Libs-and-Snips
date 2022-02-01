@@ -3,122 +3,121 @@ local TrashCan = {}
 -- Global Variabels
 local debug = require("/_libs/debug")
 local zprint = debug.zprint
-local tool = {}
-      tool.place       = require("/_libs/PositionUtils")
-      tool.waitFor     = require("/_libs/WaitUtils")
-      tool.findOBJs    = require("/_libs/FindObjs")
-      tool.string      = require("/_libs/StringUtils")
-      tool.takeObjects = require("/_libs/TakeObjects")
-      tool.cast        = require("/_libs/TrashCan/TrashCast")
-      tool.tagIDs      = require("/_libs/TrashCan/TrashIDTools")
-
-local TYPES = {Delete='Delete', SmallCard='Small', LargeCard='Large', Bag='Bag', ScriptZone='ScriptZone', SpecialCase='SpecialCase', Deck='Deck'}
+local tool      = require("/_libs/TrashCan/TrashTools")
+      tool.cast = require("/_libs/TrashCan/TrashCast")
+local KIND = {Delete='Delete', SmallCard='Small', LargeCard='Large', Bag='Bag', ScriptZone='ScriptZone', SpecialCase='SpecialCase', Deck='Deck'}
 --------------------------------------------------------------------------------
 --- Function to Called by EVENT ------------------------------------------------
 function TrashCan.process(TrashBag)
-    runTrash(TrashBag)
+  runTrash(TrashBag)
 end
 --------------------------------------------------------------------------------
 --- ProcessBagContents(TrashBag)------------------------------------------------
 function runTrash(TrashBag)
-    local DeckList = removeDecksFormTrash(TrashBag)
-    local TrashBag_Contents = TrashBag.getObjects()
-    local uniqueCastLocations = setUniqueCastLocations(TrashBag_Contents)
-    --zprint(uniqueCastLocations,'runTrash(TrashBag)')
-    Wait.frames(function() StartCascade(TrashBag, DeckList, TrashBag_Contents, uniqueCastLocations) end, 5) -- wait 5 frames to ensure deck spawn properly
+    local removedDeckList = removeDecksFormTrash(TrashBag, TrashBag.getData().ContainedObjects)
+    Wait.frames(function() ProcessBag(TrashBag, removedDeckList) end, 5) -- Wait a bit to ensure decks have spawned after being taken out of bag.
 end
---------------------------------------------------------------------------------
---- StartCascade(TrashBag, SortedTrashContents) --------------------------------
-function StartCascade(TrashBag, DeckList, TrashBag_Contents, uniqueCastLocations)
-    --zprint(uniqueCastLocations, 'uniqueCastLocations')
 
-    --local X = -10
-    --for i = 10,1,-1 do print(i) end
+function ProcessBag(TrashBag, removedDeckList)
+    local uniqueCast = UniqueCastLocations(TrashBag, removedDeckList)
+    for _, kind in pairs(KIND) do
+        if kind ~= 'Deck' then
+            uniqueCast = ProcessKind(TrashBag, kind, uniqueCast, removedDeckList)
+        end
+        --uniqueCast = ProcessKind(TrashBag, KIND.SmallCard, uniqueCast, removedDeckList)
+    end
+end
 
-    local currentTrash = TrashBag.getObjects()
-    indexesToRemove = tool.takeObjects.reverseIndex(currentTrash)
+function ProcessKind(TrashBag, Kind, uniqueCast, removedDeckList)
 
-    for _,indexToRemove in ipairs (indexesToRemove) do
-        local obj = TrashBag.takeObject({ index = indexToRemove })
-        local id = tool.tagIDs.setID(obj.getTags())
+    local TrashContents = TrashBag.getObjects()
+    local idex = tool.takeObjects_reverseIndex(TrashContents)
 
-        if not id.skip then
-            if id.tag == 'deleteme' then
-                destroyObject(obj)
-            elseif id.tag == 'specialcase' then
-                SpecialCases(obj)
-            else
-                local Y = uniqueCastLocations[id.tag].Y
-                obj.setPosition(tool.place.TopOrBot_ofObject(TrashBag,'top'))
-                obj.setPositionSmooth(uniqueCastLocations[id.tag].platform.getPosition()+Vector(0,Y,0))
-                obj.setRotation(Vector(0,180,0))
-                uniqueCastLocations[id.tag].Y = Y + 0.5
+    for k,v in ipairs(idex) do
+        local obj = TrashContents[v+1]
+        if obj.tags[1] then
+            local id = tool.setIDs(obj.tags)
+            if (id.tag and id.kind) then
+                if id.kind == Kind then
+                    --print('RawIndex = '..obj.index..' : ReverseIndex = '..v..' : Tag = '..id.tag..' : '..obj.name)
+                    uniqueCast[id.tag].target = moveObject(TrashBag.takeObject({index = v}), id, uniqueCast[id.tag])
+                end
             end
         end
     end
 
-
-        --zprint(id..'IDS in OBJ Taken')
-
-
-
-    --[[for _,indexToRemove in ipairs (indexesToRemove) do
-        local obj = TrashBag.takeObject({ index = indexToRemove })
-        local id = setID(obj.getTags())
-        local Y = uniqueCastLocations[id.tag].Y
-        obj.setPosition(tool.place.TopOrBot_ofObject(TrashBag,'top')+Vector(X,0,8))
-        obj.setPositionSmooth(uniqueCastLocations[id.tag].platform.getPosition()+Vector(0,Y,0))
-        obj.setRotation(Vector(0,180,0))
-        X = X + obj.getBounds().size.x+0.2
-        uniqueCastLocations[id.tag].Y = Y + 0.5
-    end]]
-end
-
-function SpecialCases(obj)
-    if obj.getName() == 'Cultist (Moon)' then
-        obj.setPositionSmooth(Vector(-56.37, 3, 11.22))
-    elseif obj.getName() == 'Gug (Monster) (Oblong)' then
-        obj.setPositionSmooth(Vector(-53.04, 3, 11.22))
+    if (Kind == 'Small' or Kind == 'Large') then
+        for _, deck in ipairs(removedDeckList) do
+            local DeckContents = deck.getObjects()
+            local idex = tool.takeObjects_reverseIndex(DeckContents)
+            for k,v in ipairs(idex) do
+                local obj = DeckContents[v+1]
+                if obj.tags[1] then
+                    local id = tool.setIDs(obj.tags)
+                    if (id.tag and id.kind) then
+                        if id.kind == Kind then
+                            --print('RawIndex = '..obj.index..' : ReverseIndex = '..v..' : Tag = '..id.tag..' : '..obj.name)
+                            uniqueCast[id.tag].target = moveObject(deck.takeObject({index = v}), id, uniqueCast[id.tag])
+                        end
+                    end
+                end
+            end
+        end
     end
+
+    return uniqueCast
 end
 
+function moveObject(obj, id, uc)--(card, discardZonePos, targetObj)
+    local discardPile = uc.target
+    if uc.target == uc.platform then
+        if (uc.kind == 'Small' or uc.kind == 'Large') then
+            obj.setRotation(Vector(0,180,0))
+        end
+        obj.setPosition(discardPile.getPosition()+Vector(0,1,0))
+        discardPile = obj
+    else
+        obj.setPosition(Vector(0,discardPile.getPosition().y,0) + Vector(0, discardPile.getBounds().size.y+1, 0))
+        discardPile = discardPile.putObject(obj)
+    end
+    return discardPile
+end
 --------------------------------------------------------------------------------
---- setUniqueCastLocations(SortedTrashContents) --------------------------------
-function setUniqueCastLocations(TrashObjects)
+--- removeDecksFormTrash(TrashBag) ---------------------------------------------
+function UniqueCastLocations(TrashBag, removedDeckList)
     local z = {}
-    local delme = {}
-    local specialcase = {}
-        for k,obj in pairs(TrashObjects) do
+        for k,obj in ipairs(TrashBag.getObjects()) do
             if obj.tags[1] then
-                local id = tool.tagIDs.setTrashIDs(obj.tags)
+                local id = tool.setIDs(obj.tags)
                 if (id.tag and id.kind) then
-                    --print('setUniqueCastLocations : '..id.tag..' : '..id.kind)
-                    if string.lower(id.kind) == 'deleteme' then
-                        delme[obj] = id.kind
-                    elseif string.lower(id.kind) == 'specialcase' then
-                        specialcase[obj] = id.kind
-                    else
+                    z[id.tag] = id.kind
+                end
+            end
+        end
+
+        for _, deck in ipairs (removedDeckList) do
+            for _, card in ipairs(deck.getObjects()) do
+                if card.tags[1] then
+                    local id = tool.setIDs(card.tags)
+                    if (id.tag and id.kind) then
                         z[id.tag] = id.kind
                     end
                 end
             end
         end
-
-    z = tool.cast.findContainer(z)
-    z.delme = delme
-    z.specialcase = specialcase
+        z = tool.cast.findContainer(z)
     return z
 end
 --------------------------------------------------------------------------------
---- FindObjsInTrashBagFromData(TrashBag) ---------------------------------------
-function removeDecksFormTrash(TrashBag)
+--- removeDecksFormTrash(TrashBag) ---------------------------------------------
+function removeDecksFormTrash(TrashBag, TrashBag_ContentData)
     local z = {}
-        local indexesToRemove = tool.takeObjects.reverseIndex(TrashBag.getData().ContainedObjects, {Name='Deck'})
+        local indexesToRemove = tool.takeObjects_reverseIndex(TrashBag_ContentData, {Name='Deck'})
 
         local X = -10
         for _,indexToRemove in ipairs (indexesToRemove) do
             local o = TrashBag.takeObject({ index = indexToRemove })
-            o.setPosition(tool.place.TopOrBot_ofObject(TrashBag,'top')+Vector(X,0,23))
+            o.setPosition(tool.placeTopOrBot_ofObject(TrashBag,'top')+Vector(X,0,23))
             o.setRotation(Vector(0,180,180))
             o.setLock(true)
             X = X + o.getBounds().size.x+0.2

@@ -1,0 +1,94 @@
+local TrashTools = {}
+local debug = require("/_libs/debug")
+local zprint = debug.zprint
+
+--- setID from obj.getTags -----------------------------------------------------
+function TrashTools.setIDs(tagList)
+    local id = {}
+    for k,tag in pairs(tagList) do
+        if string.find(tag, 'DiscardMe_', 1, true) then
+            id.kind = tag:gsub('DiscardMe_', '')
+        elseif string.find(tag, 'DeleteMe', 1, true) then
+            id.kind = tag
+        elseif string.find(tag, 'ID_', 1, true) then
+            id.tag = tag
+        end
+    end
+    return id
+end
+--- setTrashIDs ----------------------------------------------------------------
+function TrashTools.setTrashIDs(tagList, kind)
+    local id = {}
+        id.tag = TrashTools.findTagString(tagList, 'DiscardMe_'..kind):gsub('DiscardMe_', '')
+    return id
+end
+
+--- posFromObject(obj,switch) - 'top', 'bot'------------------------------------
+function TrashTools.placeTopOrBot_ofObject(obj,switch)
+    if not switch then switch = 'top' end
+    if switch == 'top' then
+        return obj.getPosition() + Vector(0, obj.getBounds().size.y+1, 0)
+    elseif switch =='bot' then
+        return obj.getPosition() + Vector(0, -obj.getBounds().size.y-1, 0)
+    else
+        return Vector(0, 10, 0)
+    end
+end
+--- ReverseIndex ---------------------------------------------------------------
+function TrashTools.takeObjects_reverseIndex(ContainedObjects, switch)
+    --zprint(ContainedObjects,'ContainedObjects')
+    local z = {}
+        if ContainedObjects[1] then
+            local getdata = false; if ContainedObjects[1].Nickname ~= nil then getdata = true end
+
+            for i, obj in ipairs(ContainedObjects) do
+                local index = i; if getdata then index = index-1 else index = obj.index end
+                if switch then
+                    for key,find in pairs(switch) do
+                        if obj[key] == find then
+                            table.insert(z, index)
+                        end
+                    end
+                else
+                    table.insert(z, index)
+                end
+            end
+            table.sort(z, function(a,b) return a>b end)
+        end
+    return z
+end
+--- TagFound --- ---------------------------------------------------------------
+function TrashTools.tagFound(tags, keys, useFind)
+    if useFind then
+        for _, tag in pairs(tags) do
+            for _, key in pairs(keys) do
+                if string.find(string.lower(tag), string.lower(key), 1, true) then
+                    return true
+                end
+            end
+        end
+    else
+        for _, tag in pairs(tags) do
+            for _, key in pairs(keys) do
+                if string.lower(tag) == string.lower(key) then
+                    return true
+                end
+            end
+        end
+    end
+    return false
+end
+--- find and return Tag via a string(substring search --------------------------
+function TrashTools.findTagString(tagTable, str)
+    for k, line in pairs(tagTable) do
+        if string.find(string.lower(line), string.lower(str), 1, true) then
+            return line
+        end
+    end
+end
+--- Test Function
+function TrashTools.test()
+    printToAll('----=== REQUIRE IS WORKING ===----', 'Green')
+end
+
+return TrashTools

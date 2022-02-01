@@ -4,7 +4,7 @@ local TrashCast = {}
 local ShowCast = true -- cast debug visial
 local zprint = require("/_libs/debug").zprint
 local DiscardPlatforms = nil
-local YOffset = 3
+local YOffset = 1
 --local ustring = require("/_libs/StringUtils")
 function setVariables()
     if not DiscardPlatforms then
@@ -56,15 +56,15 @@ function ProcessCast(target, zone, kind)
         for k,found in pairs(zone) do
             local obj = found.hit_object
             if (obj.type == 'Card' or obj.type == 'Deck' or obj.type == 'Bag') then
-                z.target = obj
+                z.targetObj = obj
                 noCDB = false
             end
             if obj == target then
-                z.platform = obj
+                z.targetSource = obj
             end
-            if noCDB then
+            --[[if noCDB then
                 z.target = target
-            end
+            end]]
         end
         z.Y=YOffset
         z.kind=kind

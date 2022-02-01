@@ -8,28 +8,31 @@ function TrashTools.setIDs(tagList)
     for k,tag in pairs(tagList) do
         if string.find(tag, 'DiscardMe_', 1, true) then
             id.kind = tag:gsub('DiscardMe_', '')
+            id.discard = true
         elseif string.find(tag, 'DeleteMe', 1, true) then
-            id.kind = tag
+            id.delete = true
         elseif string.find(tag, 'ID_', 1, true) then
-            id.tag = tag
+            id.id = tag
         end
     end
     return id
 end
+--[[
 --- setTrashIDs ----------------------------------------------------------------
 function TrashTools.setTrashIDs(tagList, kind)
     local id = {}
         id.tag = TrashTools.findTagString(tagList, 'DiscardMe_'..kind):gsub('DiscardMe_', '')
     return id
 end
+]]
 
 --- posFromObject(obj,switch) - 'top', 'bot'------------------------------------
 function TrashTools.placeTopOrBot_ofObject(obj,switch)
     if not switch then switch = 'top' end
     if switch == 'top' then
-        return obj.getPosition() + Vector(0, obj.getBounds().size.y+1, 0)
+        return obj.getPosition() + Vector(0, obj.getBounds().size.y+0.01, 0)
     elseif switch =='bot' then
-        return obj.getPosition() + Vector(0, -obj.getBounds().size.y-1, 0)
+        return obj.getPosition() + Vector(0, -obj.getBounds().size.y-0.01, 0)
     else
         return Vector(0, 10, 0)
     end
@@ -58,7 +61,7 @@ function TrashTools.takeObjects_reverseIndex(ContainedObjects, switch)
     return z
 end
 --- TagFound --- ---------------------------------------------------------------
-function TrashTools.tagFound(tags, keys, useFind)
+function TrashTools.tagFound(tags, keys, useFind) -- useFind BOOL : use == or use string.find()
     if useFind then
         for _, tag in pairs(tags) do
             for _, key in pairs(keys) do

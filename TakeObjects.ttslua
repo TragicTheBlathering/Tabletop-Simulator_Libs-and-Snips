@@ -22,7 +22,6 @@ function TakeObjects.reverseIndex(ContainedObjects, switch)
     table.sort(z, function(a,b) return a>b end)
     return z
 end
-
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 return TakeObjects

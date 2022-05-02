@@ -5,13 +5,15 @@ function debug.setDebugHotKeys()
 end
 
 function hot_PrintTags(playerColor, object, pointerPosition, isKeyUp)
-    local objString = tostring(object)
-    local nameString = object.getName()
-    print('\n'..objString)
-    if nameString == '' then
-        print(logString(object.getTags(), ' Tags : <No Name>'))
-    else
-        print(logString(object.getTags(), ' Tags : '..nameString))
+    if object then
+        local objString = tostring(object)
+        local nameString = object.getName()
+        print('\n'..objString)
+        if nameString == '' then
+            print(logString(object.getTags(), ' Tags : <No Name>'))
+        else
+            print(logString(object.getTags(), ' Tags : '..nameString))
+        end
     end
 end
 

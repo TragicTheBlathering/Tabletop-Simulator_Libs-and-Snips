@@ -1,0 +1,133 @@
+local TableUtils = {}
+
+    function TableUtils.SortAlpha(t)
+        table.sort(t)
+        return t
+    end
+
+    function TableUtils.removeDuplicates(t, key)
+        -- make unique keys
+        local hash = {}
+        if key then
+            for _,v in ipairs(t) do
+                hash[v[key]] = v
+            end
+        else
+            for _,v in ipairs(t) do
+                hash[v] = v
+            end
+        end
+        -- transform keys back into values
+        local res = {}
+        for k,v in pairs(hash) do
+            res[#res+1] = v
+        end
+
+        return res
+    end
+
+    function TableUtils.tableSize(t)
+        local count = 0
+        for key,value in pairs(t) do count = count + 1 end
+        return count
+    end
+
+    --- Test Function
+    function TableUtils.test()
+        printToAll('----=== TableUtils IS WORKING ===----', 'Green')
+    end
+
+return TableUtils
+
+--[[
+
+THESE ARE TMP CODES I PLAY WITHOUT
+
+function reverseList(list)
+    local z = {}
+         for i = #list, 1, -1 do
+             table.insert(z, list[i])
+         end
+    return z
+end
+
+function sortObjectListbyName(list)
+    table.sort(list, function(a, b)
+        if a.getName() ~= '' and b.getName() ~= '' then
+            --if both have names then sort based on their nicknames
+            return a.getName() < b.getName()
+        elseif a.getName() ~= '' then
+            --if only a has a nickname then a should be ahead of b
+            return true
+        elseif b.getName() ~= '' then
+            --if only b has a nickname then b should be ahead of a
+            return false
+        else
+            --if neither have nicknames then sort based on their names
+            return a.name <  b.name
+        end
+        return true
+    end)
+end
+
+function removeDuplicates(t, key)
+    -- make unique keys
+    local hash = {}
+    if key then
+        for _,v in ipairs(t) do
+            hash[v[key]] -- = v
+        --[[end
+    else
+        for _,v in ipairs(t) do
+            hash[v] = v
+        end
+    end
+    -- transform keys back into values
+    local res = {}
+    for k,v in pairs(hash) do
+        res[#res+1] = v
+    end
+
+    return res
+end
+
+function SortAlpha(list)
+    local z = {}
+        list = removeDuplicates(list, 'guid')
+
+        local sortName   = {}
+        local sortNoName = {}
+        for k,v in pairs(list) do
+            local name = v.obj.getName()
+            if name == '' then
+                name = v.obj.name..'_'..v.obj.getGUID()
+                table.insert(sortNoName, name)
+            else
+                name = name..'_'..v.obj.getGUID()
+                table.insert(sortName, name)
+            end
+        end
+
+        table.sort(sortName)
+        table.sort(sortNoName)
+        --zprint(sortName, '\nsortName')
+
+        for _, name in ipairs(sortName) do
+            for k , o in pairs(list) do
+                if name == o.obj.getName()..'_'..o.obj.getGUID() then
+                    table.insert(z, o.obj)
+                end
+            end
+        end
+
+        for _, name in ipairs(sortNoName) do
+            for k , o in pairs(list) do
+                if name == o.obj.name..'_'..o.obj.getGUID() then
+                    table.insert(z, o.obj)
+                end
+            end
+        end
+    return z
+end
+
+]]

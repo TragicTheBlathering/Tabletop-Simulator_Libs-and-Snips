@@ -1,0 +1,39 @@
+local WaitFunction = {}
+
+    local wait_ids= {}
+
+--------------------------------------------------------------------------------
+    function WaitFunction.CountClicks(obj,func,delay)
+        local delay = delay or 0.8 -- better way of setting default parameters
+        wait_ids[obj] = wait_ids[obj] or { -- just to be sure there's no attempt to index a nil value later we set an empty table first.
+          count = 0, -- We set the count to 0 here when the table is made
+        }
+
+        function delayCall()
+            func(wait_ids[obj].count)
+            wait_ids[obj].waitID = nil -- remove the wait id when the function is called
+            wait_ids[obj].count = 0  -- We set the count to 0 here when the wait has ended due to timeout
+        end
+
+        if wait_ids[obj].waitID then Wait.stop(wait_ids[obj].waitID); wait_ids[obj].waitID = nil end -- end the previous wait if it exists
+        wait_ids[obj].waitID = Wait.time(delayCall, delay) -- make a new wait, but with _no_ count
+
+        wait_ids[obj].count = wait_ids[obj].count + 1 -- finally increment the click amount.
+    end
+    --[[ **** CALL LIKE THIS ****
+    function b_function_02(obj, playercolor, alt_click)
+        wait.CountClicks(self,spawnBags, 0.4)
+    end
+
+    function spawnBags(clickCount)
+        print(clickCount)
+    end
+    ]]
+--------------------------------------------------------------------------------
+
+    --- Test Function
+    function WaitFunction.test()
+        printToAll('----=== WaitFunction ===----', 'Orange')
+    end
+
+return WaitFunction

@@ -28,6 +28,10 @@ function StringUtils.splitString(str, b1, b2)
     return z
 end
 
+function StringUtils.removeWhiteSpace(s)
+   return s:gsub("%s+", "")
+end
+
 --- Test Function
 function StringUtils.test()
     printToAll('----=== StringUtils IS WORKING ===----', 'Green')

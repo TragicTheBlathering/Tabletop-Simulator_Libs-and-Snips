@@ -21,6 +21,27 @@ function FindObjs.findTagString(tagTable, str)
     end
 end
 
+function FindObjs.getTag(tags, keys, useFind)
+    if useFind then
+        for _, tag in pairs(tags) do
+            for _, key in pairs(keys) do
+                if string.find(string.lower(tag), string.lower(key), 1, true) then
+                    return tag
+                end
+            end
+        end
+    else
+        for _, tag in pairs(tags) do
+            for _, key in pairs(keys) do
+                if string.lower(tag) == string.lower(key) then
+                    return tag
+                end
+            end
+        end
+    end
+    return 'nil'
+end
+
 function FindObjs.tagFound(tags, keys, useFind)
     if useFind then
         for _, tag in pairs(tags) do

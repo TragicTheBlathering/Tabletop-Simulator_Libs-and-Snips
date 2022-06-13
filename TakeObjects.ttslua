@@ -3,9 +3,11 @@ local zprint = require("/_libs/debug").zprint
 --------------------------------------------------------------------------------
 --- ReverseIndex ---------------------------------------------------------------
 function TakeObjects.reverseIndex(ContainedObjects, switch)
+    --reverseIndexbyTag(ContainedObjects, {Name='Deck'}) (Key,String)
+    zprint(ContainedObjects,'ContainedObjects')
     local z = {}
         local getdata = false; if ContainedObjects[1].Nickname ~= nil then getdata = true end
-
+        print('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
         for i, obj in ipairs(ContainedObjects) do
             local index = i; if getdata then index = index-1 else index = obj.index end
             if switch then
@@ -21,6 +23,11 @@ function TakeObjects.reverseIndex(ContainedObjects, switch)
 
     table.sort(z, function(a,b) return a>b end)
     return z
+end
+
+--- Test Function
+function TakeObjects.test()
+ printToAll('----=== YES TakeObjects IS WORKING ===----', 'Orange')
 end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------

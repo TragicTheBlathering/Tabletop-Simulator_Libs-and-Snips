@@ -18,6 +18,12 @@ if string.find(string.lower(line), string.lower(key), 1, true) then
 for i = 10,1,-1 do print(i) end
 for i = 1,10,1 do print(i) end
 
+--- Wait during Loop
+for count,v in pairs(t) do
+    Wait.frames(function()
+        -- do shit
+    end, (count-1)*2) -- wait intervil (some code for TIME)
+end
 --------------------------------------------------------------------------------
 function hasAllTags(tagTable, searchTable) -- OLD COMPARE TABLE CODE
     local table_SearchMe = {}

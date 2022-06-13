@@ -1,0 +1,52 @@
+local ShowCast = true
+
+local CastToFindObjects = {}
+
+    function CastToFindObjects.CastBox(SourceTag, Size, Offset, ignoreSource)
+        local Size = Size or Vector(2,2,2)
+        local Offset = Offset or Vector(0,0,0)
+
+        local SourceObj = CastToFindObjects.findInSceneByTag(SourceTag)
+
+        local platform = {size=Size, posOffset=Offset}
+        local zone = Physics.cast({ origin=SourceObj.getPosition() + platform.posOffset,
+                                    direction={0,1,0},
+                                    type=3,
+                                    max_distance=0,
+                                    size=Size,
+                                    debug=ShowCast})
+        return filterCast(zone, SourceObj, ignoreSource)
+    end
+
+
+    function CastToFindObjects.findInSceneByTag(tag)
+        for k,o in pairs(getAllObjects()) do
+            if o.hasTag(tag) then
+                return o
+            end
+        end
+        return nil
+    end
+
+----- NON-PUBLIC --------------------------------------------------------------
+    function filterCast(zone, SourceObj, ignoreSource)
+        local z = {}
+        for k, found in pairs(zone) do
+            local obj = found.hit_object
+            if not ignoreSource then
+                if obj ~= SourceObj then
+                    table.insert(z, obj)
+                end
+            else
+                table.insert(z, obj)
+            end
+        end
+        return z
+    end
+
+--- Test Function
+    function CastToFindObjects.test()
+        printToAll('----=== YES IT IS WORKING ===----', 'Orange')
+    end
+
+return CastToFindObjects

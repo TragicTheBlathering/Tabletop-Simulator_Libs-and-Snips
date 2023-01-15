@@ -1,8 +1,0 @@
---Wait Function to do stuff after drop is complete.
-local wait_ids ={}
-return function(bag, obj, func)
-    if wait_ids[bag] then Wait.stop(wait_ids[bag]) end
-    wait_ids[bag] = Wait.time(function() func(bag) end, 0.8)
-end
---return function(bag, obj, func, callback)
---wait_ids[bag] = Wait.time(function() callback(func(bag)) end, 0.8)

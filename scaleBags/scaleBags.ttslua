@@ -1,0 +1,27 @@
+local scaleBags = {}
+
+local tool = {}
+      tool.findGMNote=require("/_libs/stringUtils/stringUtils").findGMNoteLine
+
+--------------------------------------------------------------------------------
+--- SCALE BAG ------------------------------------------------------------------
+function scaleBags.fromContents(bag)
+    local contents = bag.getQuantity()
+    local data = {}
+        data.scale = bag.getScale()
+        data.pos = bag.getPosition()
+        --data.baseScale = tool.findGMNote(bag.getGMNotes(), 'scaleBase:')
+        data.baseScale = Global.getTable('GlobalVariables').BagStackBaseScale[bag.getName()]
+
+    local offset = bag.getBoundsNormalized().size.y
+    bag.setScale(Vector(data.scale.x, data.baseScale+contents*2.5,data.scale.z))
+
+    local offset = bag.getBoundsNormalized().size.y - offset
+    bag.setPosition(data.pos+Vector(0,offset/2,0))
+
+    --testing
+    local test = Global.getTable('GlobalVariables')
+    --print(logString())
+end
+
+return scaleBags

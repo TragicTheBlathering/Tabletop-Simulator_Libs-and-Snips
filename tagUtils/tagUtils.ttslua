@@ -1,0 +1,47 @@
+local tagUtils = {}
+
+function tagUtils.allObjectInBagHaveTagThatMatchesBag(bag,key)
+    --print('    : In Tag Find Code\n')
+    local data = { objsNotMissingTag = true, tag = nil }--, badObj = nil }
+
+    -- Find Tag with Matching KEY on the bag itself
+    for k,line in pairs(bag.getTags()) do
+        if string.find(string.lower(line), string.lower(key), 1, true) then
+            data.tag = line
+            break
+        else
+            data.tag = false
+        end
+    end
+
+    -- Find if the Tag found on bag is on ALL the objects in bag.
+    if data.tag then -- This is actually testing if FLASE... so if FALSE (as in key not found) do not do below
+        --print('Inside For Loop')
+        local contents = bag.getObjects()
+        for k,o in pairs(contents) do
+            contents[k] = false
+            for _,t in pairs(o.tags) do
+                if t == data.tag then
+                    --print('FOUND == t : '..t..' : bagTag : '..data.tag)
+                    --data.badObj = false
+                    contents[k] = true
+                    break
+                end
+            end
+        end
+
+        -- check that all object vales resolve as true, if any resolve as false we know an object is missing the correct tag
+        for k,v in pairs (contents) do
+            --print('Loop 2')
+            if not v then
+                data.objsNotMissingTag = false
+                break
+            end
+        end
+
+    end
+
+    return data
+end
+
+return tagUtils

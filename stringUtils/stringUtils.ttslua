@@ -1,0 +1,54 @@
+local stringUtils = {}
+
+function stringUtils.findGMNoteLine(gmn, searchStr)
+    local data = {}
+        data['found'] = false
+        data['key'] = stringUtils.splitString(gmn)
+
+    for k,l in pairs (data.key) do
+        if string.find(string.lower(l), string.lower(searchStr), 1, true) then
+            data.key = stringUtils.removeSubString(l,searchStr)
+            data.found = true
+        end
+    end
+
+    return data
+end
+
+function stringUtils.splitString(str, b1, b2)
+    local z = {}
+        if not str then
+            printToAll('splitString(str, sep, b1, b2) : Must Provide a string (at least)', 'Red')
+        else
+            -- split at NEW LINE
+            if not b1 and not b2 then
+                for s in str:gmatch("[^\r\n]+") do
+                    table.insert(z, s)
+                end
+            else
+            -- split at SEPERATOR
+                if b1 and not b2 then
+                    if b1 == '' then b1 = ' ' end
+                    for s in string.gmatch(str, "([^"..'%'..b1.."]+)") do
+                        table.insert(z, s)
+                    end
+            -- split Between
+                elseif b1 and b2 then
+                    for s in string.gmatch(str, '%'..b1..'(.-)%'..b2) do
+                        table.insert(z, s)
+                    end
+                end
+            end
+        end
+    return z
+end
+
+function stringUtils.removeSubString(s,sub)
+   return s:gsub(sub,"")
+end
+
+function stringUtils.removeWhiteSpace(s)
+   return s:gsub("%s+", "")
+end
+
+return stringUtils

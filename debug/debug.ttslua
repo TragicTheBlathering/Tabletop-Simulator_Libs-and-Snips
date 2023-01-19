@@ -1,0 +1,46 @@
+local debug = {}
+
+function debug.setDebugHotKeys()
+    addHotkey("dBug_PrintTags",hot_PrintTags , false)
+end
+
+function hot_PrintTags(playerColor, object, pointerPosition, isKeyUp)
+    if object then
+        local objString = tostring(object)
+        local nameString = object.getName()
+        print('\n'..objString)
+        if nameString == '' then
+            print(logString(object.getTags(), ' Tags : <No Name>'))
+        else
+            print(logString(object.getTags(), ' Tags : '..nameString))
+        end
+    end
+end
+
+function debug.zp(var,title)
+    if (type(var) == "table") then
+        if title then
+            print(logString(var,'\n-- '..title..' --'))
+        else
+            print(logString(var))
+        end
+    else
+        if title then print('-- '..title..' --') end
+        print(var)
+    end
+end
+
+function debug.zpd(table,key,title)
+    if title then
+        print('\n-- '..title..' --')
+    end
+    for _, tbl in pairs(table) do
+        for k,v in pairs(tbl) do
+            if k == key then
+                print('  '..tostring(k)..' : '..v)
+            end
+        end
+    end
+end
+
+return debug

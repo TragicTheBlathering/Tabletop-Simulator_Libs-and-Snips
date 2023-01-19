@@ -1,0 +1,38 @@
+local shuffleContainer = {}
+
+local tool = {}
+      tool.findGMNote=require("/_libs/stringUtils/stringUtils").findGMNoteLine
+      tool.findTag=require("/_libs/tagUtils/tagUtils").allObjectInBagHaveTagThatMatchesBag
+
+local hexC=require("/_libs/stringUtils/stringColours")
+
+
+-- Shuffle Container.
+function shuffleContainer.container(bag)
+    local shuffle = false
+    if bag.getQuantity() > 0 then
+        -- If container has tag ShuffleBagRestricted, all items in bag must share the ID_ tag of the bag itself.
+        if bag.hasTag('ShuffleBagRestricted') then
+            local searchResults = tool.findTag(bag, 'ID_') -- true means search the string, instead of exact match
+            if not searchResults.objsNotMissingTag then
+                printToAll(hexC.Red..'Shuffle Error : '..hexC.Orange..bag.getName()..hexC.Yellow..' contains at least 1 invalid object.')
+            else
+                shuffle = true
+            end
+        else
+            shuffle = true
+        end
+    end
+
+    if bag.getQuantity() > 1 and shuffle == true then
+        printToAll(hexC.Yellow..'Shuffling : '..hexC.Orange..bag.getName()..'.')
+        bag.shuffle()
+    elseif bag.getQuantity() == 1 and shuffle == true then
+        printToAll(hexC.Yellow..'No Shuffle : '..hexC.Orange..bag.getName()..hexC.Yellow..' only has 1 item.')
+    else
+        printToAll(hexC.Yellow..'No Shuffle : '..hexC.Orange..bag.getName()..hexC.Yellow..' is empty.')
+    end
+
+end
+
+return shuffleContainer

@@ -1,0 +1,9 @@
+local stringColours = {}
+
+stringColours.Yellow = '['..Color.fromString("Yellow"):toHex()..']'
+stringColours.Orange = '['..Color.fromString("Orange"):toHex()..']'
+stringColours.Red = '['..Color.fromString("Red"):toHex()..']'
+stringColours.White = '['..Color.fromString("White"):toHex()..']'
+stringColours.close = '[-]'
+
+return stringColours

@@ -1,5 +1,31 @@
 local tagUtils = {}
-
+--------------------------------------------------------------------------------
+--- TagFound --- ---------------------------------------------------------------
+--- search a tag list for another tag. useFind is a bool. flase / mission  will look for exact match. true will use string.find()
+function tagUtils.tagFound(tags, keys, useFind) -- useFind BOOL : use == or use string.find()
+    if useFind then
+        for _, tag in pairs(tags) do
+            for _, key in pairs(keys) do
+                if string.find(string.lower(tag), string.lower(key), 1, true) then
+                    return true
+                end
+            end
+        end
+    else
+        for _, tag in pairs(tags) do
+            for _   , key in pairs(keys) do
+                if string.lower(tag) == string.lower(key) then
+                    return true
+                end
+            end
+        end
+    end
+    return false
+end
+--------------------------------------------------------------------------------
+--- TagFound --- ---------------------------------------------------------------
+--- allObjectInBagHaveTagThatMatchesBag ----------------------------------------
+-- Seach all objects in a container and is any object in container has no tags in common with bag then report
 function tagUtils.allObjectInBagHaveTagThatMatchesBag(bag,key)
     --print('    : In Tag Find Code\n')
     local data = { objsNotMissingTag = true, tag = nil }--, badObj = nil }
@@ -43,5 +69,6 @@ function tagUtils.allObjectInBagHaveTagThatMatchesBag(bag,key)
 
     return data
 end
-
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 return tagUtils

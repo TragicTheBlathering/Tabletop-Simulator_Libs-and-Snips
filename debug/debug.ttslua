@@ -1,5 +1,12 @@
 local debug = {}
 
+local hexC = {}
+        hexC.Yellow = '['..Color.fromString("Yellow"):toHex()..']'
+        hexC.Orange = '['..Color.fromString("Orange"):toHex()..']'
+        hexC.Red = '['..Color.fromString("Red"):toHex()..']'
+        hexC.White = '['..Color.fromString("White"):toHex()..']'
+        hexC.close = '[-]'
+
 function debug.setDebugHotKeys()
     addHotkey("dBug_PrintTags",hot_PrintTags , false)
 end
@@ -18,15 +25,20 @@ function hot_PrintTags(playerColor, object, pointerPosition, isKeyUp)
 end
 
 function debug.zp(var,title)
-    if (type(var) == "table") then
-        if title then
-            print(logString(var,'\n-- '..title..' --'))
-        else
-            print(logString(var))
-        end
+    if var == nil then
+        printToAll(hexC.Red..'Error :'..hexC.Yellow..' Variable being sent in NIL')
     else
-        if title then print('-- '..title..' --') end
-        print(var)
+        --print(type(var))
+        if (type(var) == "table") then
+            if title then
+                print(logString(var,'\n-- '..title..' --'))
+            else
+                print(logString(var))
+            end
+        else
+            if title then print('-- '..title..' --') end
+            print(var)
+        end
     end
 end
 

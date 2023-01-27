@@ -3,6 +3,7 @@ local debug = require("/_libs/debug/debug")
 
 local tool = require("/_libs/takeObjectUtils/takeObjectUtils")
       tool.cast = require("/_libs/trashCan/trashCast")
+      tool.findTag = require("/_libs/tagUtils/tagUtils").findTagString
       tool.specialCase = require("/ArkhamHorror/TrashSpecialCase")
 
 local KIND = {Delete='Delete', SmallCard='Small', LargeCard='Large', Bag='Bag', ScriptZone='Zone', SpecialCase='SpecialCase', Deck='Deck'}
@@ -15,21 +16,21 @@ end
 --------------------------------------------------------------------------------
 --- remove any decks from the trash and move to processing ---------------------
 function runTrash(TrashBag)
-    printToAll('Trash 01 : runTrash!')
+    --printToAll('Trash 01 : runTrash!')
     local removedDeckList = removeDecksFormTrash(TrashBag, TrashBag.getData().ContainedObjects)
     Wait.frames(function() processBag(TrashBag, removedDeckList) end, 5) -- Wait a bit to ensure decks have spawned after being taken out of bag.
 end
 --------------------------------------------------------------------------------
 --- runTrash -------------------------------------------------------------------
 function processBag(TrashBag, removedDeckList)
-    print('Trash 02 : processBag!')
+    --print('Trash 02 : processBag!')
     local uniqueCast = UniqueCastLocations(TrashBag, removedDeckList)
     ProcessKind(TrashBag, uniqueCast, removedDeckList)
 end
 --------------------------------------------------------------------------------
 --- runTrash -------------------------------------------------------------------
 function ProcessKind(TrashBag, uniqueCast, removedDeckList)
-    print('Move : ProcessKind')
+    --print('Move : ProcessKind')
  -- Process the remaining contents of TrashBag (remeber all decks have been removed)
     local TrashContents = TrashBag.getObjects()
     local idex = tool.reverseIndex(TrashContents)
@@ -38,7 +39,7 @@ function ProcessKind(TrashBag, uniqueCast, removedDeckList)
         if obj.tags[1] then
             local id = setIDs(obj.tags)
             --zprint(id,'ID++++')
-            print('??')
+            --print('??')
             if id.discard then
                 if id.kind == KIND.SpecialCase then
                     print('Special Case - OBJ')
@@ -99,7 +100,7 @@ end
 --******************************************************************************
 -- This gose through list and moves all items into postion. Then once moved calls a "add to deck" function to snap them into place with putObject() rather than just fall via physisc
 function moveObject(obj, TrashBag, uniqueCastID, id)
-    print('?? - moveObject')
+    --print('?? - moveObject')
     --zprint(uniqueCastID,'uniqueCastID')
     --if uniqueCastID.targetSource.type == 'Scripting' then
         --If I ever need more advanced control when sending to script zones.. I can put stuff in here and move the rest of ths block into ELSE
@@ -125,7 +126,26 @@ function Wait_AddCardtoDeck(obj, uniqueCastID)--(card, discardZonePos, targetObj
         obj.setPosition(tool.placeTopOrBot_ofObject(uniqueCastID.targetSource,'top'))--+Vector(0,0.05,0))
         discardPile = obj
     end
+    -- If the discard obejct is a DECK pile.. make sure it is named. This will use the ID_?? As the base for the DiscardPile Name
+    if discardPile.type == 'Deck' then
+        if discardPile.getName() == '' then
+            discardPile.setName(nameDiscardPile(discardPile))
+        end
+    end
     return discardPile
+end
+
+function nameDiscardPile(discardPile)
+    local ID = tool.findTag(discardPile.getTags(),'ID_'):gsub("ID_", "")
+    local nameTable = {}
+    ID:gsub("[A-Z][a-z]*", function(word) table.insert(nameTable, word) end) -- Split Cammel Case into a Table
+    local name = ''
+    if #nameTable > 1 then
+        name = table.concat(nameTable, " ")
+    else
+        name = nameTable[1]
+    end
+    return 'Discarded '..name..'s'
 end
 --------------------------------------------------------------------------------
 --- setIDs ---------------------------------------------------------------------

@@ -1,5 +1,18 @@
 local stringUtils = {}
 
+function stringUtils.findInString(line,key)
+    local data = {}
+    if string.find(string.lower(line), string.lower(key), 1, true) then
+        data.sting = line
+        data.found = true
+    else
+        data.sting = ''
+        data.found = false
+    end
+    return data
+end
+
+-- Test the GM Notes to see if a sub string exists on any given line of the GM Notes. Return the line and a true/false for the find.
 function stringUtils.findGMNoteLine(gmn, searchStr)
     local data = {}
         data['found'] = false
@@ -11,10 +24,13 @@ function stringUtils.findGMNoteLine(gmn, searchStr)
             data.found = true
         end
     end
-
     return data
 end
 
+--Split a string into a table.
+---- str : string to split. Only sending this will split the string at each new line.
+---- b1 : adding this will split the string at each occourence of this char
+---- b2 : adding this will return the substring between two chars
 function stringUtils.splitString(str, b1, b2)
     local z = {}
         if not str then
@@ -41,6 +57,62 @@ function stringUtils.splitString(str, b1, b2)
             end
         end
     return z
+end
+
+--This will return a vector from a string containing the pasted output of the move tool from TTS.
+---- {-6.56, 0.92, -13.28} will become : Vector(-6.56, 0.92, -13.28)
+function stringUtils.findVectorFrom_string(gmn)
+    if stringUtils.removeChar_FirstLast(gmn, 0, 1) ~= '{' then
+        vec = stringUtils.splitString(gmn, ',')
+        for k,v in ipairs(vec) do
+            vec[k] = v:gsub("%s+", "") -- remove any whote spaces in number
+        end
+        return Vector(vec[1], vec[2], vec[3])
+    else
+        local vec = stringUtils.removeChar_FirstLast(gmn, 'first', 'last')
+        vec = stringUtils.splitString(vec, ',')
+        for k,v in ipairs(vec) do
+            vec[k] = v:gsub("%s+", "") -- remove any whote spaces in number
+        end
+        return Vector(vec[1], vec[2], vec[3])
+    end
+end
+
+--------------------------------------------------------------------------------
+--- Remove Charicters from front or back of string.
+-- str : if you only send the str it will remove the 1st and last value of the string.
+-- f = Value of ammount you want to cut off from START string = 1234, f=2, result : 34. A Value of 0, dose nothing.
+-- b = Value of ammount you want to cut off from END string = 1234, b=2, result : 12. A Value of 0, dose nothing.
+-- b If you use a positive value it will cut from the front... so 12345, f=0,b=3, result = 123
+function stringUtils.removeChar_FirstLast(str, f, b)
+    -- Set Defaults for Front and Back. This will chop off nothing. (as in full string)
+    f = f or 1
+    b = b or -1
+
+    if type(f) == "string" then
+        -- Test of the prams are the strings "first". Then ajust values to cut of the first and last char of the string.
+        -- if a invalid string retun default value
+        if f == 'first' then
+            f = 2
+        else
+            f = 1
+        end
+    else
+        if f >  0 then f = f+1 end
+    end
+
+    if type(b) == "string" then
+        -- Test of the prams are the strings "last". Then ajust values to cut of the first and last char of the string.
+        -- if a invalid string retun default value
+        if b == 'last' then
+            b = -2
+        else
+            b = -1
+        end
+    else
+        if b < 0 then b = b-1 end
+    end
+    return string.sub(str, f, b)
 end
 
 function stringUtils.removeSubString(s,sub)

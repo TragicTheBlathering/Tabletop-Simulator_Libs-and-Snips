@@ -1,5 +1,12 @@
 local tagUtils = {}
 --------------------------------------------------------------------------------
+function tagUtils.findTagString(tagTable, str)
+    for k, line in pairs(tagTable) do
+        if string.find(string.lower(line), string.lower(str), 1, true) then
+            return line
+        end
+    end
+end
 --- TagFound --- ---------------------------------------------------------------
 --- search a tag list for another tag. useFind is a bool. flase / mission  will look for exact match. true will use string.find()
 function tagUtils.tagFound(tags, keys, useFind) -- useFind BOOL : use == or use string.find()

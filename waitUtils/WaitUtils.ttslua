@@ -1,14 +1,14 @@
-local WaitUtils = {}
+local waitUtils = {}
 
 local wait_ids ={}
 
-function WaitUtils.DropIntoBox(bag, obj, func, time) -- '0.8'
+function waitUtils.dropIntoBox(bag, obj, func, time) -- '0.8'
     time = time or 0.8
     if wait_ids[bag] then Wait.stop(wait_ids[bag]) end
     wait_ids[bag] = Wait.time(function() func(bag) end, time)
 end
 
-function WaitUtils.frames(func, time, ...)--(bag, obj, func, time) -- '0.8'
+function waitUtils.frames(func, time, ...)--(bag, obj, func, time) -- '0.8'
     time = time or 0.8
     --if wait_ids[bag] then Wait.stop(wait_ids[bag]) end
     --wait_ids[bag] = Wait.time(function() func(bag) end, time)
@@ -16,4 +16,23 @@ function WaitUtils.frames(func, time, ...)--(bag, obj, func, time) -- '0.8'
     Wait.frames(function() func(args) end, time)
 end
 
-return WaitUtils
+function waitUtils.countClicks(obj,func,delay)
+    print('IN : waitUtils.countClicks')
+    local delay = delay or 0.8 -- better way of setting default parameters
+    wait_ids[obj] = wait_ids[obj] or { -- just to be sure there's no attempt to index a nil value later we set an empty table first.
+      count = 0, -- We set the count to 0 here when the table is made
+    }
+
+    function delayCall()
+        func(wait_ids[obj].count)
+        wait_ids[obj].waitID = nil -- remove the wait id when the function is called
+        wait_ids[obj].count = 0  -- We set the count to 0 here when the wait has ended due to timeout
+    end
+
+    if wait_ids[obj].waitID then Wait.stop(wait_ids[obj].waitID); wait_ids[obj].waitID = nil end -- end the previous wait if it exists
+    wait_ids[obj].waitID = Wait.time(delayCall, delay) -- make a new wait, but with _no_ count
+
+    wait_ids[obj].count = wait_ids[obj].count + 1 -- finally increment the click amount.
+end
+
+return waitUtils

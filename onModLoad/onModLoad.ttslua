@@ -2,24 +2,66 @@ local onModLoad = {}
 --------------------------------------------------------------------------------
 --- MEGA FREEZE -- (Freeze by tag "MegaFreeze", and Freeze by zone tagged with MegaFreeze) func('scriptzoneGUID', 'anyting')
 function onModLoad.MegaFreeze(FreezeByGuidTable)
+    local objectList = {}
     for _, obj in pairs(getObjectsWithTag('MegaFreeze')) do
         if obj.type == 'Scripting' then
             for k,o in pairs(obj.getObjects(true)) do
-                o.interactable = false
+                objectList[o] = o.interactable
             end
         else
-            obj.interactable = false
+            objectList[obj] = obj.interactable
+        end
+    end
+
+    if FreezeByGuidTable then
+        for _, guid in ipairs(FreezeByGuidTable) do
+            print('----------- FREEZE BY GUID -----------')
+            objectList[getObjectFromGUID(guid)] = getObjectFromGUID(guid).interactable
+        end
+    end
+
+    for o,v in pairs(objectList) do
+        if o.interactable then
+            o.interactable = false
+        else
+            o.interactable = true
+        end
+    end
+end
+    --[[for _, obj in pairs(getObjectsWithTag('MegaFreeze')) do
+        if obj.type == 'Scripting' then
+            for k,o in pairs(obj.getObjects(true)) do
+                --o.setLock(true)
+                if o.interactable then
+                    o.interactable = false
+                else
+                    o.interactable = true
+                end
+            end
+        else
+            --obj.setLock(true)
+            if obj.interactable then
+                obj.interactable = false
+            else
+                obj.interactable = true
+            end
         end
     end
 
     --Freeze Objects from a table of GUIDS
     if FreezeByGuidTable then
         for _, guid in ipairs(FreezeByGuidTable) do
-            print('?')
-            getObjectFromGUID(guid).interactable = false
+            print('----------- FREEZE BY GUID -----------')
+            --o.setLock(true)
+            --getObjectFromGUID(guid).interactable = false
+            if getObjectFromGUID(guid).interactable then
+                getObjectFromGUID(guid).interactable = false
+            else
+                getObjectFromGUID(guid).interactable = true
+            end
         end
-    end
-end
+    end]]
+
 
 --------------------------------------------------------------------------------
 --- Fix Hand Zones - Fixe HandZone Height

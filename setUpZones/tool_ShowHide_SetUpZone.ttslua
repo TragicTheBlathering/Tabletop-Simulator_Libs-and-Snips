@@ -1,0 +1,90 @@
+local setupPlatform = nil
+local setUpObjects = nil
+local offset = Vector(-130,-93,0)
+local showCast = false
+
+function onload()
+    self.createButton({
+        label="Show / Hide SetUp Zone", click_function="b_Function", function_owner=self,
+        position={0,0.5,1}, rotation={0,180,0}, height=500, width=2800,
+        font_size=250
+    })
+
+    for k,v in pairs(getAllObjects()) do
+        if v.hasTag("SetUpZone_Platform") then
+            setupPlatform = v
+        end
+    end
+
+end
+--------------------------------------------------------------------------------
+-- Place Demo Code in Here -----------------------------------------------------
+function b_Function(obj, color, alt_click)
+    setUpObjects = cast()
+    --print(logString(setUpObjects,"\nSetup Objects"))
+    if setupPlatform.getPosition().y > -40 then
+        lowerPlatform()
+    else
+        raisePlatform()
+    end
+
+end
+
+function raisePlatform()
+    for k,v in pairs(setUpObjects) do
+        local x = v.getPosition().x
+        local y = v.getPosition().y
+        local z = v.getPosition().z
+        v.setPosition(Vector(x+offset.x, y-offset.y, z))
+        Wait.frames(function() v.setLock(false) v.interactable = true end, 5)
+    end
+
+    local x, y, v = setupPlatform.getPosition().x, setupPlatform.getPosition().y, setupPlatform.getPosition().z
+    setupPlatform.setPosition(Vector(x+offset.x, y-offset.y, z))
+end
+
+function lowerPlatform()
+    for k,v in pairs(setUpObjects) do
+        v.setLock(true)
+        v.interactable = false
+        local x = v.getPosition().x
+        local y = v.getPosition().y
+        local z = v.getPosition().z
+        v.setPosition(Vector(x-offset.x, y+offset.y, z))
+    end
+
+    local x, y, v = setupPlatform.getPosition().x, setupPlatform.getPosition().y, setupPlatform.getPosition().z
+    setupPlatform.setPosition(Vector(x-offset.x, y+offset.y, z))
+end
+
+function processCast(zone)
+    local found = {}
+    for k, v in pairs(zone) do
+        local obj = v.hit_object
+        if obj ~= setupPlatform then
+            found[obj] = true
+        else
+            found[obj] = false
+        end
+    end
+    --print(logString(found,"\nFound Objects"))
+
+    local validObjs = {}
+    for obj, valid in pairs(found) do
+        if valid then
+            table.insert(validObjs, obj)
+        end
+    end
+
+    return validObjs
+end
+
+function cast()
+    local zone = Physics.cast({ origin=setupPlatform.getPosition()+Vector(0,1.4,0),
+                                direction={0,1,0},
+                                type=3,
+                                max_distance=0,
+                                size={79.5,3,79.5},
+                                debug=showCast})
+    return processCast(zone)
+end

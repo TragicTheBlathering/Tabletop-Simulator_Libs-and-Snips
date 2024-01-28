@@ -1,0 +1,27 @@
+--- Move Cards without being caught by hand zones
+function moveObj(obj, pos, rot)
+   if obj.use_hands then
+      obj.use_hands = false
+      obj.setRotationSmooth( rot, false, true )
+      obj.setPositionSmooth( pos, false, true )
+      Wait.condition( function() obj.use_hands = true end, ||not obj.isSmoothMoving(), 3 )
+   else
+      obj.setRotationSmooth( rot, false, true )
+      obj.setPositionSmooth( pos, false, true )
+   end
+end
+
+function takeObjectFromDeckOrCard( deck_or_card )
+   local card
+   if deck_or_card ~= nil then
+      if deck_or_card.type == "Deck" then
+         card = deck_or_card.takeObject()
+         deck_or_card = deck_or_card.remainder or deck_or_card
+      else
+         card = deck_or_card
+         deck_or_card = nil
+      end
+   end
+
+   return card
+end

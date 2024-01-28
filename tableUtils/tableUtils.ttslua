@@ -32,11 +32,56 @@ local tableUtils = {}
         return count
     end
 
+    function tableUtils.identicalValues(t)
+        local first = t[1]
+         for i = 2, #t do
+             if t[i] ~= first then
+                 return false
+             end
+         end
+         return true
+    end
+
+    function tableUtils.tableSize(t)
+        local count = 0
+        for key,value in pairs(t) do count = count + 1 end
+        return count
+    end
+
+    function tableUtils.editTable_recursiveStringKey(tbl, key, newValue)
+        for k, v in pairs(tbl) do
+            if type(v) == "table" then
+                if editTable_recursiveStringKey(v, key, newValue) then
+                    return true
+                end
+            else
+                if type(k) == "string" and string.lower(k) == string.lower(key) then
+                    tbl[k] = newValue
+                    return true
+                end
+            end
+        end
+        return false
+    end
+
+    function tableUtils.deepcopy(orig)
+        local copy
+        if type(orig) == 'table' then
+            copy = {}
+            for k, v in next, orig, nil do
+                copy[deepcopy(k)] = deepcopy(v)
+            end
+            setmetatable(copy, deepcopy(getmetatable(orig)))
+        else
+            copy = orig
+        end
+        return copy
+    end
+
     --- Test Function
     function tableUtils.test()
         printToAll('----=== tableUtils IS WORKING ===----', 'Green')
     end
-
 return tableUtils
 
 --[[

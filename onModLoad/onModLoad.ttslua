@@ -28,51 +28,22 @@ function onModLoad.MegaFreeze(FreezeByGuidTable)
         end
     end
 end
-    --[[for _, obj in pairs(getObjectsWithTag('MegaFreeze')) do
-        if obj.type == 'Scripting' then
-            for k,o in pairs(obj.getObjects(true)) do
-                --o.setLock(true)
-                if o.interactable then
-                    o.interactable = false
-                else
-                    o.interactable = true
-                end
-            end
-        else
-            --obj.setLock(true)
-            if obj.interactable then
-                obj.interactable = false
-            else
-                obj.interactable = true
-            end
-        end
-    end
-
-    --Freeze Objects from a table of GUIDS
-    if FreezeByGuidTable then
-        for _, guid in ipairs(FreezeByGuidTable) do
-            print('----------- FREEZE BY GUID -----------')
-            --o.setLock(true)
-            --getObjectFromGUID(guid).interactable = false
-            if getObjectFromGUID(guid).interactable then
-                getObjectFromGUID(guid).interactable = false
-            else
-                getObjectFromGUID(guid).interactable = true
-            end
-        end
-    end]]
-
 
 --------------------------------------------------------------------------------
 --- Fix Hand Zones - Fixe HandZone Height
-    function onModLoad.FixHandZones(yOffset)
-        local Y = yOffset
+    function onModLoad.FixHandZones(setY)
+
         local playerList = Player.getAvailableColors()
         for _, colour in ipairs(playerList) do
             local pramsOLD = Player[colour].getHandTransform()
+            local Y = pramsOLD.position.y
+            if setY ~= nil and type(setY) == type(42) then -- test type.. is the var == to the type of a number, in this case 42
+                Y = setY
+            end
+            --print(Y)
             pramsNew = {position={pramsOLD.position.x, Y, pramsOLD.position.z}
-                       ,rotation={0,180,0}
-                       ,scale={15.50, 5.40, 0.82}
+                       ,rotation={pramsOLD.rotation.x, pramsOLD.rotation.y, pramsOLD.rotation.z}
+                       ,scale={pramsOLD.scale.x, pramsOLD.scale.y, pramsOLD.scale.z}
                        }
             Player[colour].setHandTransform(pramsNew, 1)
         end

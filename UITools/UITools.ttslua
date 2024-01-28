@@ -1,0 +1,86 @@
+local UITools = {}
+    function UITools.buildAssetTable(...)
+        if #{...} == 0 then
+            return UI.getCustomAssets()
+        else
+            return buildNewAssetTable(...)
+        end
+    end
+
+    function UITools.uiScale_self(switch)
+        switch = switch or true
+        local objScale = self.getScale()
+        local uiScale = Vector(1/objScale.x, 1/objScale.z, 1/objScale.y)
+        if switch then
+            return tostring(uiScale.x)..' '..tostring(uiScale.y)..' '..tostring(uiScale.z)
+        else
+            return uiScale
+        end
+    end
+
+--------------------------------------------------------------------------------
+--- Private Functions
+function buildNewAssetTable(...)
+    local newAssetKeys = {}
+    for i, arg in ipairs({...}) do
+        if type(arg) == "table" then
+            for k,v in pairs(arg) do
+                newAssetKeys[v] = v
+            end
+        else
+            newAssetKeys[arg] = arg
+        end
+    end
+
+    local UIAssetsList_orig = buildAssetList(self.UI.getCustomAssets())
+    local UIAssetsList_global   = buildAssetList(UI.getCustomAssets())
+    --print(logString(UIAssetsList_orig, '\n --- UIAssetsList_orig ---'))
+    --print(logString(UIAssetsList_global, '\n --- UIAssetsList_global ---'))
+    --print(logString(newAssetKeys, '\n --- newAssetKeys ---'))
+    local assetsToCopy = {}
+    for key in pairs(newAssetKeys) do
+        for _, asset in pairs(UIAssetsList_global) do
+            if isStringEqual_lower(key, asset.name) then
+                assetsToCopy[asset.name] = asset
+            end
+        end
+    end
+    --print(logString(assetsToCopy, '\n --- assetsToCopy ---'))
+    --print(OriginalUIAssetsList)
+    local newAssetList = {}
+    if UIAssetsList_orig == nil then
+        for k,v in pairs(assetsToCopy) do
+            table.insert(newAssetList, v)
+        end
+    else
+        for oKey, _ in pairs(UIAssetsList_orig) do
+            for gKey, asset in pairs(assetsToCopy) do
+                if isStringEqual_lower(oKey, gKey) then
+                    table.insert(newAssetList, asset)
+                end
+            end
+        end
+    end
+    --print(logString(newAssetList, '\n --- newAssetList ---'))
+    return newAssetList
+end
+
+function buildAssetList(tbl)
+    local z = nil
+    for k,v in pairs(tbl) do
+        z = {}
+        z[v.name] = v
+    end
+    return z
+end
+
+function isStringEqual_lower(str1, str2)
+    if string.lower(str1) == string.lower(str2) then
+        return true
+    else
+        return false
+    end
+end
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+return UITools

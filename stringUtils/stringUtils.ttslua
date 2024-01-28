@@ -59,24 +59,35 @@ function stringUtils.splitString(str, b1, b2)
     return z
 end
 
+function stringUtils.stringToBool(str)
+  if type(str) == "string" then
+    if str:lower() == "true" then
+      return true
+    elseif str:lower() == "false" then
+      return false
+    end
+  end
+  return false
+end
+
 --This will return a vector from a string containing the pasted output of the move tool from TTS.
 ---- {-6.56, 0.92, -13.28} will become : Vector(-6.56, 0.92, -13.28)
-function stringUtils.findVectorFrom_string(gmn)
-    if stringUtils.removeChar_FirstLast(gmn, 0, 1) ~= '{' then
-        vec = stringUtils.splitString(gmn, ',')
+function stringUtils.findVectorFrom_string(s)
+    if s:sub(1, 1) ~= '{' then -- Test 1st char to see if it is a {
+        local vec = stringUtils.splitString(s, ',')
         for k,v in ipairs(vec) do
             vec[k] = v:gsub("%s+", "") -- remove any whote spaces in number
         end
         return Vector(vec[1], vec[2], vec[3])
     else
-        local vec = stringUtils.removeChar_FirstLast(gmn, 'first', 'last')
-        vec = stringUtils.splitString(vec, ',')
+        local vec = stringUtils.splitString(s:sub(2, -2), ',')
         for k,v in ipairs(vec) do
             vec[k] = v:gsub("%s+", "") -- remove any whote spaces in number
         end
         return Vector(vec[1], vec[2], vec[3])
     end
 end
+
 
 --------------------------------------------------------------------------------
 --- Remove Charicters from front or back of string.
@@ -121,6 +132,11 @@ end
 
 function stringUtils.removeWhiteSpace(s)
    return s:gsub("%s+", "")
+end
+
+function stringUtils.replaceSubString(str, subStrOrig, subStrNew)
+    local pattern = subStrOrig:gsub("[%(%)%.%%%+%-%*%?%[%]%^%$]", "%%%0") -- escape special characters in subStrOrig
+    return str:gsub(pattern, subStrNew)
 end
 
 return stringUtils

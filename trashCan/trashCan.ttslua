@@ -4,14 +4,14 @@ local debug = require("/_libs/debug/debug")
 local tool = require("/_libs/takeObjectUtils/takeObjectUtils")
       tool.cast = require("/_libs/trashCan/trashCast")
       tool.findTag = require("/_libs/tagUtils/tagUtils").findTagString
-      tool.specialCase = require("/ArkhamHorror/TrashSpecialCase")
+      tool.gameSpecific = require("/ArkhamHorror/Trash_GameSpesific")
 
 local KIND = {Delete='Delete', SmallCard='Small', LargeCard='Large', Bag='Bag', ScriptZone='Zone', SpecialCase='SpecialCase', Deck='Deck'}
 
 --------------------------------------------------------------------------------
 --- Function to Call with EVENT ------------------------------------------------
 function trashCan.process(bag)
-  runTrash(bag)
+    runTrash(bag)
 end
 --------------------------------------------------------------------------------
 --- remove any decks from the trash and move to processing ---------------------
@@ -93,7 +93,7 @@ end
 --- moveSpecialCase ------------------------------------------------------------
 -- This calls the "specialCase" code.
 function moveSpecialCase(obj, TrashBag)
-    tool.specialCase.Process(obj,TrashBag)
+    tool.gameSpecific.specialCase(obj,TrashBag)
 end
 --******************************************************************************
 --- moveObject -----------------------------------------------------------------
@@ -136,16 +136,24 @@ function Wait_AddCardtoDeck(obj, uniqueCastID)--(card, discardZonePos, targetObj
 end
 
 function nameDiscardPile(discardPile)
-    local ID = tool.findTag(discardPile.getTags(),'ID_'):gsub("ID_", "")
+    local trashID = tool.findTag(discardPile.getTags(),'ID_'):gsub("ID_", "")
     local nameTable = {}
-    ID:gsub("[A-Z][a-z]*", function(word) table.insert(nameTable, word) end) -- Split Cammel Case into a Table
-    local name = ''
-    if #nameTable > 1 then
-        name = table.concat(nameTable, " ")
+    trashID:gsub("[A-Z][a-z]*", function(word) table.insert(nameTable, word) end) -- Split Cammel Case into a Table
+    --print(trashID)
+    local spesificTrashName = tool.gameSpecific.DiscardNameFix(trashID)
+    if spesificTrashName.found then
+        --print('FOUND')
+        --print(spesificTrashName.newName)
+        return spesificTrashName.newName
     else
-        name = nameTable[1]
+        local name = ''
+        if #nameTable > 1 then
+            name = table.concat(nameTable, " ")
+        else
+            name = nameTable[1]
+        end
+        return 'Discarded '..name..'s'
     end
-    return 'Discarded '..name..'s'
 end
 --------------------------------------------------------------------------------
 --- setIDs ---------------------------------------------------------------------
@@ -215,8 +223,8 @@ function removeDecksFormTrash(TrashBag, TrashBag_ContentData)
         --debug.zp(indexesToRemove,'indexesToRemove')
         for i,indexToRemove in ipairs (indexesToRemove) do
             local o = TrashBag.takeObject({ index = indexToRemove })
-            o.setPosition(tool.placeTopOrBot_ofObject(TrashBag,'top')+Vector(0,0,-8)) ------------ debug VERSION OF MOVE
-            --o.setPosition(tool.placeTopOrBot_ofObject(TrashBag,'top')+Vector(0,-70,0))
+            --o.setPosition(tool.placeTopOrBot_ofObject(TrashBag,'top')+Vector(0,0,-8)) ------------ debug VERSION OF MOVE
+            o.setPosition(tool.placeTopOrBot_ofObject(TrashBag,'top')+Vector(0,-70,0))
             o.setRotation(Vector(0,180,0))
             o.setLock(true)
             table.insert(z, o)

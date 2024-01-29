@@ -2,10 +2,10 @@ local waitUtils = {}
 
 local wait_ids ={}
 
-function waitUtils.dropIntoBox(bag, obj, func, time) -- '0.8'
+function waitUtils.dropIntoBox(type, bag, func, obj, time) -- '0.8'
     time = time or 0.8
     if wait_ids[bag] then Wait.stop(wait_ids[bag]) end
-    wait_ids[bag] = Wait.time(function() func(bag) end, time)
+    wait_ids[bag] = Wait.time(function() func(type, bag) end, time)
 end
 
 function waitUtils.frames(func, time, ...)--(bag, obj, func, time) -- '0.8'

@@ -28,9 +28,12 @@ local tableUtils = {}
 
     function tableUtils.tableSize(t)
         local count = 0
-        for key,value in pairs(t) do count = count + 1 end
+        if t ~= nil then
+            for key,value in pairs(t) do count = count + 1 end
+        end
         return count
     end
+
 
     function tableUtils.identicalValues(t)
         local first = t[1]
@@ -42,11 +45,11 @@ local tableUtils = {}
          return true
     end
 
-    function tableUtils.tableSize(t)
+    --[[function tableUtils.tableSize(t)
         local count = 0
         for key,value in pairs(t) do count = count + 1 end
         return count
-    end
+    end]]
 
     function tableUtils.editTable_recursiveStringKey(tbl, key, newValue)
         for k, v in pairs(tbl) do

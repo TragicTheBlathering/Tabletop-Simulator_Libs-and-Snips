@@ -2,21 +2,29 @@
 local scaleBags = {}
 --------------------------------------------------------------------------------
 --- SCALE BAG ------------------------------------------------------------------
-function scaleBags.fromContents(bag)
-    print("---==== WORKING ===---")
+function scaleBags.fromContents(bag, tags, ...)
+    local restricted = false
+    local scaleValue = 2.5
 
-    --[[
-    local contents = bag.getQuantity()
+    local args = {...}
+    for _, v in ipairs(args) do
+        if type(v) == "boolean" then
+            restricted = v
+        elseif type(v) == "number" then
+            scaleValue = v
+        end
+    end
+
     local data = {}
-        data.scale = bag.getScale()
-        data.pos = bag.getPosition()
+    data.scale = bag.getScale()
+    data.pos = bag.getPosition()
+    data.baseScale = tags.baseScale
 
+    local contents = bag.getQuantity()
     local offset = bag.getBoundsNormalized().size.y
-    bag.setScale(Vector(data.scale.x, data.baseScale+contents*2.5,data.scale.z))
-
-    local offset = bag.getBoundsNormalized().size.y - offset
-    bag.setPosition(data.pos+Vector(0,offset/2,0))
-    ]]
+    bag.setScale(Vector(data.scale.x, data.baseScale.y+contents*scaleValue, data.scale.z))
+    offset = bag.getBoundsNormalized().size.y - offset
+    bag.setPosition(data.pos+Vector(0,offset,0))
 end
 
 return scaleBags

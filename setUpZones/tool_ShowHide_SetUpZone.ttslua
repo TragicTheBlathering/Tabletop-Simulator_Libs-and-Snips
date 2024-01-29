@@ -41,6 +41,7 @@ function raisePlatform()
 
     local x, y, v = setupPlatform.getPosition().x, setupPlatform.getPosition().y, setupPlatform.getPosition().z
     setupPlatform.setPosition(Vector(x+offset.x, y-offset.y, z))
+    setupPlatform.interactable = false
 end
 
 function lowerPlatform()
@@ -55,6 +56,7 @@ function lowerPlatform()
 
     local x, y, v = setupPlatform.getPosition().x, setupPlatform.getPosition().y, setupPlatform.getPosition().z
     setupPlatform.setPosition(Vector(x-offset.x, y+offset.y, z))
+    setupPlatform.interactable = false
 end
 
 function processCast(zone)

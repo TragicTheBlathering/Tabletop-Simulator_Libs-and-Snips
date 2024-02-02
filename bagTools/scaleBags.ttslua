@@ -1,30 +1,119 @@
---print("---==== WORKING ===---")
+--[[ Example Data
+GlobalVariables.scaleBagData = {
+        maptile_DrawBag = {
+                tags = {maptile_Countryside='http://cloud-3.steamusercontent.com/ugc/1688270643043406251/A651D5CA5D876C2784761FC27F04CDB14CB7FF19/',
+                        maptile_Core='http://cloud-3.steamusercontent.com/ugc/1688270643043527253/68E270678D47C66202EAF01B86981ADF5509CE89/'},
+                value = {scaleValue = 5, baseScale=Vector(3.6, 5.8, 3.6), basePos=Vector(-53.9, 2.16, -43.5), origSize=0.2901816},
+                empty = "http://cloud-3.steamusercontent.com/ugc/2265941315537168720/A0D67752A48BE0DDC1B046FED85236AFAE4D8A40/",
+            },
+        monster_DrawBag = {},
+}
+]]
 local scaleBags = {}
 --------------------------------------------------------------------------------
 --- SCALE BAG ------------------------------------------------------------------
-function scaleBags.fromContents(bag, tags, ...)
-    local restricted = false
-    local scaleValue = 2.5
+function scaleBags.fromContents(bag, data)
+--[[
+    local tags, value, empty, scaleValue, upsideDown, pivot = buildVariables(data)
+    local bagQuantity = bag.getQuantity()
+    local pos = bag.getPosition()
+    local scale = bag.getScale()
 
-    local args = {...}
-    for _, v in ipairs(args) do
-        if type(v) == "boolean" then
-            restricted = v
-        elseif type(v) == "number" then
-            scaleValue = v
+    if bagQuantity > 0 then
+        local Y_Scaler = value.baseScale.y + (bagQuantity * scaleValue)
+        bag.setScale(Vector(scale.x, Y_Scaler, scale.z))
+
+        if pivot == 'center' then
+            --print('USING CENTER PIVOT')
+            local Y_Pos = (bag.getBounds().size.y/2 + value.basePos.y) - (value.origSize/2)
+            bag.setPosition(Vector(pos.x, Y_Pos, pos.z))
+        elseif pivot == 'bottom' then
+            --print('USING BOTTOM PIVOT')
+            --Bottom Piviot Requires no position adjustment after scale
+        elseif pivot == 'top' then
+            print('USING TOP PIVOT')
+            --Not Coded as I have never needed this yet
         end
+    else
+        bag.setScale(Vector(scale.x, value.baseScale.y, scale.z))
+        bag.setPosition(Vector(pos.x, value.basePos.y, pos.z))
     end
 
-    local data = {}
-    data.scale = bag.getScale()
-    data.pos = bag.getPosition()
-    data.baseScale = tags.baseScale
+    if upsideDown then -- Scale DOWN instead of UP (used for upside down bags)
+        printToAll("NO CODED YET : Scale DOWN instead of UP (used for upside down bags", "Orange")
+    else
 
-    local contents = bag.getQuantity()
-    local offset = bag.getBoundsNormalized().size.y
-    bag.setScale(Vector(data.scale.x, data.baseScale.y+contents*scaleValue, data.scale.z))
-    offset = bag.getBoundsNormalized().size.y - offset
-    bag.setPosition(data.pos+Vector(0,offset,0))
+    end
+]]
+end
+
+function buildVariables(data)
+    local pivot = "center"
+    local scaleValue = 2.5
+    local down = false
+    local tags = {}
+    local empty = {hex=false, url=false}
+
+    if data.value.scaleValue ~= nil then
+        scaleValue = data.value.scaleValue
+    end
+
+    if data.value.down ~= nil then
+        down = data.value.down
+    end
+
+    if data.value.pivot ~= nil then
+        pivot = string.lower(data.value.pivot)
+    end
+
+    if data.tags[1] ~= nil then
+        for k,v in ipairs(data.tags) do
+            tags[v] = false
+        end
+    else
+        tags = data.tags
+    end
+
+    if string.find(string.lower(data.empty), string.lower("http")) then
+        empty.url = data.empty
+    elseif string.find(string.lower(data.empty), string.lower("#")) then
+        empty.hex = data.empty
+    end
+
+    return tags, data.value, empty, scaleValue, down, pivot
 end
 
 return scaleBags
+
+
+
+--[[
+function scaleBags.fromContents(bag, tags, scaleValue, down)
+    local scaleValue = scaleValue or 2.4
+    local down = down or false
+
+    local data = {}
+    data.bagQuantity = bag.getQuantity()
+    data.origSize = tags.origSize
+    data.baseScale = tags.baseScale
+    data.basePos = tags.basePos
+    data.Y_Scaler = data.baseScale.y + (data.bagQuantity * scaleValue)
+
+    bag.setScale(Vector(data.baseScale.x, data.Y_Scaler, data.baseScale.z))
+
+    if down then
+        if data.bagQuantity == 0 then
+        bag.setPosition(data.basePos)
+    else
+        local offset = bag.getBounds().size.y - data.origSize --0.155005
+        local x = data.basePos.x
+        local y = data.basePos.y + offset
+        local z = data.basePos.z
+        bag.setPosition(Vector(x,y,z))
+    end
+    else
+        bag.setPosition(data.basePos)
+    end
+end
+
+]]

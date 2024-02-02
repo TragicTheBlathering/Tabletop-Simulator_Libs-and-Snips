@@ -1,0 +1,54 @@
+local setBagTextureFromContents = {}
+
+local tool = {}
+            tool.hex2Col=require("/_libs/colourUtils/colourUtils")
+            tool.buildVariable=require("/_libs/bagTools/phraseVariable").buildVariables
+--        tool.tablesize=require("/_libs/tableUtils/tableUtils").tableSize
+
+function setBagTextureFromContents.simulateTokenStack(bag, data)
+    local data = tool.buildVariable(bag, data)
+
+    print(logString(data))
+
+end
+
+--local meshUrl = bagData.ContainedObjects[contentCount].CustomMesh.DiffuseURL
+--bag.setCustomObject({diffuse=meshUrl})
+
+
+return setBagTextureFromContents
+
+--[[
+old
+
+function setBagTextureFromContents.simulateTokenStack(bag, data)
+    local tags, value, empty, scaleValue, upsideDown, pivot = tool.buildVariable(data)
+    local bagQuantity = bag.getQuantity()
+    local bagData = bag.getData()
+    --local contentCount = tool.tablesize(bagData.ContainedObjects)
+    --print(logString(tags))
+
+    if bagQuantity < 1 then
+        if not empty.hex then
+            print('URL : empty')
+        else
+            --print('HEX : empty')
+            bag.setColorTint(tool.hex2Col(empty.hex))
+        end
+    else
+        for tag, useTopObjectInBag in pairs(tags) do
+            --print(logString(tags))
+            if useTopObjectInBag then
+                print('use a top Object as texture')
+            else
+                --print('???')
+                bag.setColorTint('White')
+                --print('--- '..tostring(useTopObjectInBag)..' ---')
+            end
+            break
+        end
+    end
+    --bag.reload()
+end
+
+]]

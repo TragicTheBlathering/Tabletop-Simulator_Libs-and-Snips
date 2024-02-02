@@ -72,16 +72,3 @@ end
 --------------------------------------------------------------------------------
 -- End --
 return setUpZones
---[[
--- Place in Global
-tool.setupZone=require("/_libs/setUpZones/setUpZones")
-function getSetupObj(find)
-    if setupObjects == nil then
-        setupObjects = tool.setupZone.setSetupObjvariable(str)
-        return tool.setupZone.getSetupObject(str, setupObjects)
-    else
-        print("Second")
-        return tool.setupZone.getSetupObject(str, setupObjects)
-    end
-end
-]]

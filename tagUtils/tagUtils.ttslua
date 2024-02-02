@@ -7,9 +7,27 @@ function tagUtils.findTagString(tagTable, str)
         end
     end
 end
+
+function tagUtils.tagFoundinTagList(tagTable, str, find)
+    find = find or false
+    for k, line in pairs(tagTable) do
+        if find then
+            if string.find(string.lower(line), string.lower(str), 1, true) then
+                return true
+            end
+        else
+            if string.lower(line) == string.lower(str) then
+                return true
+            end
+        end
+    end
+    return false
+end
 --- TagFound --- ---------------------------------------------------------------
 --- search a tag list for another tag. useFind is a bool. flase / mission  will look for exact match. true will use string.find()
 function tagUtils.tagFound(tags, keys, useFind) -- useFind BOOL : use == or use string.find()
+    useFind = useFind or false
+
     if useFind then
         for _, tag in pairs(tags) do
             for _, key in pairs(keys) do

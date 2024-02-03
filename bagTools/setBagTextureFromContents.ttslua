@@ -1,20 +1,54 @@
 local setBagTextureFromContents = {}
 
 local tool = {}
-            tool.hex2Col=require("/_libs/colourUtils/colourUtils")
+            tool.hex2Col=require("/_libs/colourUtils/colourUtils").hexToRgb
             tool.buildVariable=require("/_libs/bagTools/phraseVariable").buildVariables
---        tool.tablesize=require("/_libs/tableUtils/tableUtils").tableSize
+            tool.tablesize=require("/_libs/tableUtils/tableUtils").tableSize
+            tool.commonTag=require("/_libs/tagUtils/tagUtils").findCommonTagBetweenTagListandTagListKeys
+            tool.foundTag=require("/_libs/tagUtils/tagUtils").tagIsFoundOnAllObjectsInBag
 
-function setBagTextureFromContents.simulateTokenStack(bag, data)
-    local data = tool.buildVariable(bag, data)
+local errorTint = {0.9607843, 0.2235294, 0.2235294} -- '#F53939'
 
-    print(logString(data))
+function setBagTextureFromContents.simulateTokenStack(bag, value)
+    local value = tool.buildVariable(bag, value)
+    --print(logString(value, '\n--== Phrased Data ==--'))
+    if value.type.hex then
+        changeBagTexture_hex(bag, value)
+
+    elseif value.type.url then
+        changeBagTexture_specificURLs(bag, value)
+
+    elseif value.type.contents then
+        changeBagTexture_useTetxureOfTopObjectInBag(bag, value)
+    end
 
 end
 
---local meshUrl = bagData.ContainedObjects[contentCount].CustomMesh.DiffuseURL
---bag.setCustomObject({diffuse=meshUrl})
+function changeBagTexture_useTetxureOfTopObjectInBag(bag, value)
+    print('USE OBJECT')
+end
 
+function changeBagTexture_specificURLs(bag, value)
+    print('USE URL')
+end
+
+function changeBagTexture_hex(bag, value)
+    local contents = bag.getObjects()
+    local bagTags = bag.getTags()
+    local matchingTag = false
+    if #contents > 0 then
+        matchThisTag = tool.commonTag(value.tags, bagTags)
+
+        if tool.foundTag(matchThisTag, contents) then
+            bag.setColorTint(value.tags[matchThisTag])
+        else
+            bag.setColorTint(errorTint)
+        end
+
+    else
+        bag.setColorTint(value.empty.hex)
+    end
+end
 
 return setBagTextureFromContents
 

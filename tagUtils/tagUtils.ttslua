@@ -9,19 +9,23 @@ function tagUtils.findTagString(tagTable, str)
 end
 
 function tagUtils.tagFoundinTagList(tagTable, str, find)
-    find = find or false
-    for k, line in pairs(tagTable) do
-        if find then
-            if string.find(string.lower(line), string.lower(str), 1, true) then
-                return true
-            end
-        else
-            if string.lower(line) == string.lower(str) then
-                return true
+    if tagTable then
+        find = find or false
+        for k, line in pairs(tagTable) do
+            if find then
+                if string.find(string.lower(line), string.lower(str), 1, true) then
+                    return true
+                end
+            else
+                if string.lower(line) == string.lower(str) then
+                    return true
+                end
             end
         end
+        return false
+    else
+        return false
     end
-    return false
 end
 --- TagFound --- ---------------------------------------------------------------
 --- search a tag list for another tag. useFind is a bool. flase / mission  will look for exact match. true will use string.find()
@@ -93,6 +97,56 @@ function tagUtils.allObjectInBagHaveTagThatMatchesBag(bag,key)
     end
 
     return data
+end
+--------------------------------------------------------------------------------
+-- This will search a bag and all the object tags in it.
+-- If the tag is found on ALL objects in the bag, it returns true
+function tagUtils.tagIsFoundOnAllObjectsInBag(targetString, contents)
+    local listOfLists = {}
+    for k,o in pairs(contents) do
+        table.insert(listOfLists, o.tags)
+    end
+
+        for _, sublist in ipairs(listOfLists) do
+        local foundInSublist = false
+
+        for _, element in ipairs(sublist) do
+            if string.lower(element) == string.lower(targetString) then
+                --print(element.." : "..targetString)
+                foundInSublist = true
+                break
+            end
+        end
+
+        if not foundInSublist then
+            return false  -- String not found in this sublist
+        end
+    end
+    return true  -- String found in all sublists
+end
+--------------------------------------------------------------------------------
+-- This will search to lists of strings (tags) vs another list with strings as keys
+-- and return a list of tags that are in both the string list and the keylist,
+-- if only only one is found it will return a string.
+function tagUtils.findCommonTagBetweenTagListandTagListKeys(listKeys, list2)
+    --print(logString(list1, '\n --- LIST1'))
+    --print(logString(list2, '\n --- LIST2'))
+
+    local commonStrings = {}
+
+    for key1, _ in pairs(listKeys) do
+        for _, element2 in ipairs(list2) do
+            if string.lower(key1) == string.lower(element2) then
+                table.insert(commonStrings, key1)
+                break  -- Move to the next key in list1 after a match is found
+            end
+        end
+    end
+
+    if #commonStrings == 1 then
+        return commonStrings[1]
+    end
+    return commonStrings
 end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------

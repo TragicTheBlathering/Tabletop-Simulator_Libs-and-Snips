@@ -3,88 +3,69 @@ local phraseVariable = {}
 local tool = {}
     tool.hex=require("/_libs/colourUtils/colourUtils")
 
-function phraseVariable.buildVariables(b, d)
+function phraseVariable.buildVariables(bag, d)
     --print('--=== Phraser ===--')
-    --print(logString(tool.hex))
+
     local data = {}
-            data.type = d.type
-            data.pivot = "center"
-            data.scaleValue = 2.5
-            data.down = false
-            data.tags = {}
-            data.useBagObjTextures = true
-            data.empty = {hex=false, url=false, texture=nil}
+        data.type = d.type
+        data.pivot = "center"
+        data.scaleValue = 2.5
+        data.down = false
+        data.tags = {}
+        --data.useBagObjTextures = true
+        --data.empty = {hex=false, url=false, texture=nil}
+        data.empty = {}
 
-    if d.value.scaleValue ~= nil then
-        data.scaleValue = d.value.scaleValue
-    end
+        if d.value.scaleValue ~= nil then
+            data.scaleValue = d.value.scaleValue
+        end
 
-    if d.value.down ~= nil then
-        down = d.value.down
-    end
+        if d.value.down ~= nil then
+            down = d.value.down
+        end
 
-    if d.value.pivot ~= nil then
-        pivot = string.lower(d.value.pivot)
-    end
+        if d.value.pivot ~= nil then
+            pivot = string.lower(d.value.pivot)
+        end
 
-    if string.find(string.lower(d.empty), string.lower("http")) then
-        data.empty.url = true
-        data.empty.texture = d.empty
-    elseif string.find(string.lower(d.empty), string.lower("#")) then
-        data.empty.hex = true
-        data.empty.texture = d.empty
-    end
+        if string.find(string.lower(d.empty), string.lower("http")) then
+            data.empty.url = d.empty
+        elseif string.find(string.lower(d.empty), string.lower("#")) then
+            data.empty.hex = tool.hex.hexToRgb(d.empty)
+        end
 
-    --print(logString(d.tags))
-    if d.tags == nil or next(d.tags) == nil then
-        printToAll("NOTE : to be coded. No Table of any sort is found.. resort to using the top object in bag no matter what it is as texture, ", "Orange")
-        data.tags = false
-    else
-        local col = nil
-        if d.type.hex then -- If using HexColour to change colour
-            if tool.hex.isHexColor(d.type.hex) then -- if no hex found set to EMPTY. else use hex colour
-                col = tool.hex.hexToRgb(d.type.hex)
-            else
-                col = data.empty.texture
-            end
+        --print(logString(d.tags))
+        if d.tags == nil or next(d.tags) == nil then
+            printToAll("NOTE : to be coded. No Table of any sort is found.. resort to using the top object in bag no matter what it is as texture, ", "Orange")
+            data.tags = false
+        else
+            local col = nil
+            if d.type.hex then -- If using HexColour to change colour
+                if tool.hex.isHexColor(d.type.hex) then -- if no hex found set to WHITE. else use hex colour
+                    col = tool.hex.hexToRgb(d.type.hex)
+                else
+                    col = Color.fromString("White")
+                end
 
-            for k,v in pairs(d.tags) do
-                data.tags[v] = col
-            end
+                for k,v in pairs(d.tags) do
+                    data.tags[v] = col
+                end
 
-        elseif d.type.url then -- if using custom URLS then simply copy tag data
-            data.tags = d.tags
+            elseif d.type.url then -- if using custom URLS then simply copy tag data
+                data.tags = d.tags
 
-        elseif d.type.contents then -- if using bag objects, move tags to keys to match other options
-            for k,v in pairs(d.tags) do
-                data.tags[v] = false
+            elseif d.type.contents then -- if using bag objects, move tags to keys to match other options
+                for k,v in pairs(d.tags) do
+                    data.tags[v] = false
+                end
             end
         end
-    end
     return data
 end
 
 return phraseVariable
 
 --[[
-local col = nil
-if tool.hex.isHexColor(d.type.hex) then -- if no hex found set to EMPTY. else use hex colour
-    col = tool.hex.hexToRgb(d.type.hex)
-end
-else
-    col = data.empty.texture
-end
 
-for k,v in pairs(d.tags) do
-    data.tags[v] = col
-end
 
-elseif d.type.url then -- if using custom URLS then simply copy tag data
-data.tags = d.tags
-
-elseif d.type.contents then -- if using bag objects, move tags to keys to match other options
-for k,v in pairs(d.tags) do
-    data.tags[v] = false
-end
-end
 ]]

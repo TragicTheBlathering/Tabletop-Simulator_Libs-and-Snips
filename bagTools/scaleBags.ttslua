@@ -38,8 +38,7 @@ function scaleBags.fromContents(bag, value)
                 local Y_Pos = (bag.getBounds().size.y + value.basePos.y) - (value.origSizeY)
                 bag.setPosition(Vector(pos.x, Y_Pos, pos.z))
             end
-
-            --Bottom Piviot Requires no position adjustment after scale if not upside down
+        --Bottom Piviot Requires no position adjustment after scale if not upside down
 
         elseif value.pivot == 'top' then
             print('USING TOP PIVOT')

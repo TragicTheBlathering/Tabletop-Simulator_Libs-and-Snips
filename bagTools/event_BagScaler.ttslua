@@ -1,0 +1,69 @@
+local event_BagScaler = {}
+    local tool = {}
+          tool.wait = {}
+          tool.wait.dropIntoBox=require("/_libs/waitUtils/waitUtils").dropIntoBox
+
+          tool.findTag = require("/_libs/tagUtils/tagUtils").tagFoundinTagList
+
+          tool.scaleBag=require("/_libs/bagTools/scaleBags").fromContents
+          tool.setBagTexture=require("/_libs/bagTools/setBagTextureFromContents").simulateTokenStack
+          tool.ejectInvalidObjs=require("/_libs/bagTools/ejectInvalidObjects").eject
+
+    local globalVar = {}
+          globalVar.scaleBag = require("/MageKnightV3/GlobalVariables").scaleBagData
+
+    runExitBag = true
+
+function processBagScaler(bag, objData)
+    runExitBag = false
+    local bagTag = bag.getTags()
+    for t,v in pairs(globalVar.scaleBag) do
+        local tag = 'eventID_'..t
+        --print(tag)
+        if bag.hasTag(tag) then -- and
+            local value = globalVar.scaleBag[t]
+            tool.scaleBag(bag, value) -- true means move UP
+            tool.setBagTexture(bag, value)
+        end
+    end
+    runExitBag = true
+end
+
+--[[
+for key, tags in pairs(globalVar.scaleBag) do
+--print(bag.getBounds().size.y)
+
+--- Map Draw Bag
+if bag.hasTag(key) and string.lower(key) == string.lower("maptile_DrawBag") then
+    if string.lower(eventType) == string.lower('enter') then
+        tool.ejectInvalidObjs(bag, tags)
+    end
+    tool.scaleBag(bag, tags, 3.5, true) -- true means move UP
+    tool.setBagTexture(bag, globalVar.emptyStackImage[key])
+
+--- Player Command Token Pile
+elseif bag.hasTag(key) and string.lower(key) == string.lower("player_CommandToken") then
+    tool.scaleBag(bag, tags, 1.5)
+    tool.setBagTexture(bag, globalVar.emptyStackImage[key])
+end
+end
+]]
+
+function event_BagScaler.enterContainer(bag, obj, idTag)
+    if runExitBag then
+        if bag.hasTag(idTag) then
+            tool.wait.dropIntoBox(bag, obj, processBagScaler, time)
+        end
+    end
+end
+
+function event_BagScaler.exitContainer(bag, obj, idTag)
+    if runExitBag then
+        if bag.hasTag(idTag) then
+            tool.wait.dropIntoBox(bag, obj, processBagScaler, time)
+        end
+    end
+end
+
+
+return event_BagScaler

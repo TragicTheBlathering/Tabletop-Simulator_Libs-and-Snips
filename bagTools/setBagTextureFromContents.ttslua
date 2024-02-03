@@ -6,6 +6,7 @@ local tool = {}
             tool.tablesize=require("/_libs/tableUtils/tableUtils").tableSize
             tool.commonTag=require("/_libs/tagUtils/tagUtils").findCommonTagBetweenTagListandTagListKeys
             tool.foundTag=require("/_libs/tagUtils/tagUtils").tagIsFoundOnAllObjectsInBag
+            tool.tablesize=require("/_libs/tableUtils/tableUtils").tableSize
 
 local errorTint = {0.9607843, 0.2235294, 0.2235294} -- '#F53939'
 
@@ -29,7 +30,18 @@ function changeBagTexture_useTetxureOfTopObjectInBag(bag, value)
 end
 
 function changeBagTexture_specificURLs(bag, value)
-    print('USE URL')
+    local bagData = bag.getData()
+    local contentCount = tool.tablesize(bagData.ContainedObjects)
+    local bagTags = bag.getTags()
+    local matchingTag = false
+
+    if contentCount > 0 then
+        matchThisTag = tool.commonTag(value.tags, bagData.ContainedObjects[contentCount].Tags)
+        bag.setCustomObject({diffuse=value.tags[matchThisTag]})
+    else
+        bag.setCustomObject({diffuse=value.empty.url})
+    end
+    bag.reload()
 end
 
 function changeBagTexture_hex(bag, value)

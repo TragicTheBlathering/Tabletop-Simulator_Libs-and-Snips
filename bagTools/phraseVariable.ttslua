@@ -5,27 +5,23 @@ local tool = {}
 
 function phraseVariable.buildVariables(bag, d)
     --print('--=== Phraser ===--')
-
+    --print(logString(d))
     local data = {}
         data.type = d.type
-        data.pivot = "center"
-        data.scaleValue = 2.5
-        data.down = false
+        data.pivot = string.lower(d.pivot) or "center"
+        data.upsideDownBag = false
+        data.scaleValue = d.value.scaleValue or 2.5
+        data.origSizeY = d.value.origSize
+        data.baseScale = d.value.baseScale
+        data.basePos = d.value.basePos
         data.tags = {}
-        --data.useBagObjTextures = true
-        --data.empty = {hex=false, url=false, texture=nil}
         data.empty = {}
 
-        if d.value.scaleValue ~= nil then
-            data.scaleValue = d.value.scaleValue
-        end
-
-        if d.value.down ~= nil then
-            down = d.value.down
-        end
-
-        if d.value.pivot ~= nil then
-            pivot = string.lower(d.value.pivot)
+        -- Is the bag upside down?
+        local bagRot = bag.getRotation()
+        if Vector(0, 0 ,bagRot.z):equals(Vector(0, 0, 180)) then
+            data.upsideDownBag = true
+            data.basePos = data.basePos + Vector(0, data.origSizeY, 0)
         end
 
         if string.find(string.lower(d.empty), string.lower("http")) then
@@ -34,7 +30,6 @@ function phraseVariable.buildVariables(bag, d)
             data.empty.hex = tool.hex.hexToRgb(d.empty)
         end
 
-        --print(logString(d.tags))
         if d.tags == nil or next(d.tags) == nil then
             printToAll("NOTE : to be coded. No Table of any sort is found.. resort to using the top object in bag no matter what it is as texture, ", "Orange")
             data.tags = false

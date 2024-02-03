@@ -35,8 +35,10 @@ end
 function changeBagTexture_hex(bag, value)
     local contents = bag.getObjects()
     local bagTags = bag.getTags()
+
     local matchingTag = false
     if #contents > 0 then
+        --print(#contents)
         matchThisTag = tool.commonTag(value.tags, bagTags)
 
         if tool.foundTag(matchThisTag, contents) then

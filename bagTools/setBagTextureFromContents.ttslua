@@ -26,7 +26,42 @@ function setBagTextureFromContents.simulateTokenStack(bag, value)
 end
 
 function changeBagTexture_useTetxureOfTopObjectInBag(bag, value)
-    print('USE OBJECT')
+    --print("----- USE OBJECT TEXTURE")
+    local bagData = bag.getData()
+    local contentCount = tool.tablesize(bagData.ContainedObjects)
+    local bagTags = bag.getTags()
+    local matchingTag = false
+
+    if contentCount > 0 then
+        local topOBJ = bagData.ContainedObjects[contentCount]
+        local newImage = nil
+
+        --This needs to handle the various custom Objects... Mesh, Tile, Token etc etc
+        -- I'm adding them as my mods need them.
+        print(topOBJ.Name)
+        if topOBJ.Name == "Custom_Tile" then
+            if value.upsideDownBag then
+                print("USE BOTTOM IMAGE")
+            else
+                newImage = topOBJ.CustomImage.ImageURL
+                bag.setColorTint('White')
+            end
+
+        elseif topOBJ.Name == "Custom_Model" then
+            --print(logString(topOBJ.CustomMesh.DiffuseURL))
+            newImage = topOBJ.CustomMesh.DiffuseURL
+            bag.setColorTint('White')
+        end
+        bag.setCustomObject({diffuse=newImage})
+
+        --matchThisTag = tool.commonTag(value.tags, bagData.ContainedObjects[contentCount].Tags)
+    else
+        matchThisTag = tool.commonTag(value.tags, bagData.Tags)
+        bag.setColorTint(value.empty.hex)
+        bag.setCustomObject({diffuse=value.tags[matchThisTag]})
+    end
+    bag.reload()
+
 end
 
 function changeBagTexture_specificURLs(bag, value)

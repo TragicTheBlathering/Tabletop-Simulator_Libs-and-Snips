@@ -26,6 +26,8 @@ function scaleBags.fromContents(bag, value)
         local Y_Scaler = value.baseScale.y + (bagQuantity * value.scaleValue)
         bag.setScale(Vector(scale.x, Y_Scaler, scale.z))
 
+        --print("!!!!!")
+
         --- Adjust Position
         if value.pivot == 'center' then
             --print('USING CENTER PIVOT')
@@ -35,6 +37,7 @@ function scaleBags.fromContents(bag, value)
         elseif value.pivot == 'bottom' then
             --print('USING BOTTOM PIVOT')
             if value.upsideDownBag then
+                print("   UPSIDE DOWN")
                 local Y_Pos = (bag.getBounds().size.y + value.basePos.y) - (value.origSizeY)
                 bag.setPosition(Vector(pos.x, Y_Pos, pos.z))
             end
@@ -48,6 +51,7 @@ function scaleBags.fromContents(bag, value)
         bag.setScale(Vector(scale.x, value.baseScale.y, scale.z))
         bag.setPosition(Vector(pos.x, value.basePos.y, pos.z))
     end
+    return true
 end
 
 return scaleBags

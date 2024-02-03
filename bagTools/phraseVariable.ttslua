@@ -8,7 +8,7 @@ function phraseVariable.buildVariables(bag, d)
     --print(logString(d))
     local data = {}
         data.type = d.type
-        data.pivot = string.lower(d.pivot) or "center"
+        data.pivot = d.pivot or "center"
         data.upsideDownBag = false
         data.scaleValue = d.value.scaleValue or 2.5
         data.origSizeY = d.value.origSize
@@ -17,6 +17,13 @@ function phraseVariable.buildVariables(bag, d)
         data.tags = {}
         data.empty = {}
 
+        --print(logString(data.pivot,"\n---------------"))
+        --data.pivot = string.lower(data.pivot)
+        if data.pivot == "" then
+            data.pivot = "center"
+        else
+            data.pivot = string.lower(data.pivot)
+        end
         -- Is the bag upside down?
         local bagRot = bag.getRotation()
         if Vector(0, 0 ,bagRot.z):equals(Vector(0, 0, 180)) then
@@ -51,7 +58,7 @@ function phraseVariable.buildVariables(bag, d)
 
             elseif d.type.contents then -- if using bag objects, move tags to keys to match other options
                 for k,v in pairs(d.tags) do
-                    data.tags[v] = false
+                    data.tags[k] = v
                 end
             end
         end

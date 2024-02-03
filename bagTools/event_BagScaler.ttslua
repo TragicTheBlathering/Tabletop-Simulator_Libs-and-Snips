@@ -13,6 +13,7 @@ local event_BagScaler = {}
           globalVar.scaleBag = require("/MageKnightV3/GlobalVariables").scaleBagData
 
     runExitBag = true
+    changeImage = nil
 
 function processBagScaler(bag, objData)
     runExitBag = false
@@ -22,32 +23,30 @@ function processBagScaler(bag, objData)
         --print(tag)
         if bag.hasTag(tag) then -- and
             local value = globalVar.scaleBag[t]
+            --[[
             tool.scaleBag(bag, value) -- true means move UP
-            tool.setBagTexture(bag, value)
+
+            Wait.frames(function()
+                tool.setBagTexture(bag, value)
+            end, 15)
+            ]]
+            changeImage = tool.scaleBag(bag, value)
+            Wait.condition(function()
+                changeImage = nil
+                tool.setBagTexture(bag, value)
+            end, function() return changeImage end)
+
+            --[[
+
+            if tool.scaleBag(bag, value) then
+                tool.setBagTexture(bag, value)
+            end
+            ]]
+
         end
     end
     runExitBag = true
 end
-
---[[
-for key, tags in pairs(globalVar.scaleBag) do
---print(bag.getBounds().size.y)
-
---- Map Draw Bag
-if bag.hasTag(key) and string.lower(key) == string.lower("maptile_DrawBag") then
-    if string.lower(eventType) == string.lower('enter') then
-        tool.ejectInvalidObjs(bag, tags)
-    end
-    tool.scaleBag(bag, tags, 3.5, true) -- true means move UP
-    tool.setBagTexture(bag, globalVar.emptyStackImage[key])
-
---- Player Command Token Pile
-elseif bag.hasTag(key) and string.lower(key) == string.lower("player_CommandToken") then
-    tool.scaleBag(bag, tags, 1.5)
-    tool.setBagTexture(bag, globalVar.emptyStackImage[key])
-end
-end
-]]
 
 function event_BagScaler.enterContainer(bag, obj, idTag)
     if runExitBag then

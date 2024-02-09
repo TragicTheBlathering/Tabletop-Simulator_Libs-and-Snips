@@ -5,6 +5,106 @@ local tableUtils = {}
         return t
     end
 
+    function tableUtils.isTable(value)
+        return type(value) == "table"
+    end
+
+    -- Merge to tables, skipping any duplicate keys.
+    -- If either table is nil or {} return the other tbl
+    -- if both are nil, return nil
+
+    function tableUtils.deepMerge(OrigTable, addTblToOrig)
+        local table1 = nil
+        local table2 = nil
+
+        if OrigTable == nil or (type(OrigTable) == "table" and next(OrigTable) ~= nil) then
+            table1 = OrigTable
+        end
+
+        if addTblToOrig == nil or (type(addTblToOrig) == "table" and next(addTblToOrig) ~= nil) then
+            table2 = addTblToOrig
+        end
+
+        if table1 == nil and table2 == nil then
+            --print('bothNil')
+            return nil
+
+        elseif table1 ~= nil and table2 == nil then
+            --print('t1~=, t2=')
+            return table1
+
+        elseif table1 == nil and table2 ~= nil then
+            --print('t1=, t2~=')
+            return table2
+
+        elseif table1 ~= nil and table2 ~= nil then
+            --print('t1~=, t2~=')
+            local result = {}
+            -- Merge keys from table1 that are not in table2
+            for key, value in pairs(table1) do
+                if not table2[key] then
+                    result[key] = value
+                else
+                    -- Recursively merge subtables
+                    result[key] = deepMerge(value, table2[key])
+                end
+            end
+
+            -- Merge keys from table2 that are not in table1
+            for key, value in pairs(table2) do
+                if not table1[key] then
+                    result[key] = value
+                end
+            end
+            return result
+        end
+
+    return result
+end
+
+    function tableUtils.merge(OrigTable, addTblToOrig)
+        local table1 = nil
+        local table2 = nil
+
+        if OrigTable == nil or (type(OrigTable) == "table" and next(OrigTable) ~= nil) then
+            table1 = OrigTable
+        end
+
+        if addTblToOrig == nil or (type(addTblToOrig) == "table" and next(addTblToOrig) ~= nil) then
+            table2 = addTblToOrig
+        end
+
+            if table1 == nil and table2 == nil then
+                --print('bothNil')
+                return nil
+
+            elseif table1 ~= nil and table2 == nil then
+                --print('t1~=, t2=')
+                return table1
+
+            elseif table1 == nil and table2 ~= nil then
+                --print('t1=, t2~=')
+                return table2
+
+            elseif table1 ~= nil and table2 ~= nil then
+                --print('t1~=, t2~=')
+                local result = {}
+                -- Copy keys from table1
+                for key, value in pairs(table1) do
+                    result[key] = value
+                end
+
+                -- Copy keys from table2, ignoring duplicates
+                for key, value in pairs(table2) do
+                    if result[key] == nil then
+                        result[key] = value
+                    end
+                end
+                return result
+            end
+
+    end
+
     function tableUtils.removeDuplicates(t, key)
         -- make unique keys
         local hash = {}

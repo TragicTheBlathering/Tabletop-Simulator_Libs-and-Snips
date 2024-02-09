@@ -37,7 +37,7 @@ function scaleBags.fromContents(bag, value)
         elseif value.pivot == 'bottom' then
             --print('USING BOTTOM PIVOT')
             if value.upsideDownBag then
-                print("   UPSIDE DOWN")
+                --print("   UPSIDE DOWN")
                 local Y_Pos = (bag.getBounds().size.y + value.basePos.y) - (value.origSizeY)
                 bag.setPosition(Vector(pos.x, Y_Pos, pos.z))
             end

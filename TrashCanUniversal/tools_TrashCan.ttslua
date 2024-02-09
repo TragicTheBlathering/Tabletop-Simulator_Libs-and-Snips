@@ -1,0 +1,12 @@
+local trashTools = {}
+    trashTools.takeObj = require("/_libs/takeObjectUtils/takeObjectUtils")
+
+    trashTools.wait = {}
+    trashTools.wait.dropIntoBox=require("/_libs/waitUtils/waitUtils").dropIntoBox
+
+    trashTools.tbls = {}
+    trashTools.tbls.merge=require("/_libs/tableUtils/tableUtils").merge
+
+    trashTools.cast=require("/_libs/TrashCanUniversal/cast_trashcanUniversal").cast
+
+return trashTools

@@ -38,10 +38,10 @@ function changeBagTexture_useTetxureOfTopObjectInBag(bag, value)
 
         --This needs to handle the various custom Objects... Mesh, Tile, Token etc etc
         -- I'm adding them as my mods need them.
-        print(topOBJ.Name)
+        --print(topOBJ.Name)
         if topOBJ.Name == "Custom_Tile" then
             if value.upsideDownBag then
-                print("USE BOTTOM IMAGE")
+                --print("USE BOTTOM IMAGE")
             else
                 newImage = topOBJ.CustomImage.ImageURL
                 bag.setColorTint('White')

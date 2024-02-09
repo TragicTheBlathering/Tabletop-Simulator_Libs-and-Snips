@@ -1,29 +1,60 @@
 local takeObjectUtils = {}
-local tool = {}
-      tool.tags = require("/_libs/tagUtils/tagUtils")
 
---------------------------------------------------------------------------------
---- reverseIndex  --------------------------------------------------------------
---- create a reverse index for ALL objects in a container
-function takeObjectUtils.reverseIndex(ContainedObjects, switch)
-    --zprint(ContainedObjects,'ContainedObjects')
+local tool = {}
+      tool.tags=require("/_libs/tagUtils/tagUtils")
+      --tool.index=require("/_libs/setIndexType/setIndexType")
+
+function setIndex(i, isGetData, obj)
+    local index = i
+    if isGetData then
+        return index-1
+    else
+        return obj.index
+    end
+end
+
+function takeObjectUtils.reverseIndex(containedObjects)
     local z = {}
-        if ContainedObjects[1] then
-            local getdata = false; if ContainedObjects[1].Nickname ~= nil then getdata = true end
-            for i, obj in ipairs(ContainedObjects) do
-                local index = i; if getdata then index = index-1 else index = obj.index end
-                if switch then
-                    for key,find in pairs(switch) do
-                        if obj[key] == find then
-                            table.insert(z, index)
-                        end
-                    end
-                else
-                    table.insert(z, index)
-                end
-            end
-            table.sort(z, function(a,b) return a>b end)
+    local tagType, isGetData = tool.tags.getTagKey(containedObjects)
+    for i, obj in pairs(containedObjects) do
+        local index = setIndex(i, isGetData, obj)
+        table.insert(z, index)
+    end
+    table.sort(z, function(a,b) return a>b end)
+    --print(logString(z, "\n ---- z"))
+    return z
+end
+
+function takeObjectUtils.reverseIndex_TagedOnly(tags, containedObjects, ...)
+    local arg = {...}; local type = false; local searchSubStr = false
+    for k, v in ipairs(arg) do
+        if tostring(v) == 'true' or tostring(v) == 'false' then
+            searchSubStr = v
+        else
+            type = v
         end
+    end
+
+    local tagType, isGetData = tool.tags.getTagKey(containedObjects)
+    local tagFound = tool.tags.isTagFound_ObjList(containedObjects, tags, searchSubStr)
+
+    local z = {}
+    if tagFound then
+        --print("\n===========")
+        for i, obj in pairs(containedObjects) do
+            local index = setIndex(i, isGetData, obj)
+            local validTag = tool.tags.singleTagFoundinTagList(obj[tagType], tags)
+            if type then
+                if obj.Name == type and validTag then
+                    table.insert(z, index) -- add all objs with valid tags AND type ("deck")
+                end
+            elseif validTag then
+                table.insert(z, index)-- add all objs with valid tags
+            end
+        end
+    end
+    table.sort(z, function(a,b) return a>b end)
+    --print(logString(z, "\n ---- z"))
     return z
 end
 
@@ -44,38 +75,8 @@ function takeObjectUtils.placeTopOrBot_ofObject(obj,switch)
         else
             return Vector(0,0,0)
         end
+        print('6 - !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
   --end (This if statment was ended in single line)
 end
---------------------------------------------------------------------------------
---- reverseIndexbyTag  ---------------------------------------------------------
---- find only valid taged objects and create a reverse index list for those objects only
---local indexesToRemove = tool.reverseIndexbyTag(TrashBag_ContentData, {tag='DiscardMe_', search=true}, {Name='Deck'})
-function takeObjectUtils.reverseIndexbyTag(ContainedObjects, tag, switch)
-    local z = {}
-        local getdata = false; if ContainedObjects[1].Nickname ~= nil then getdata = true end
 
-        for i, obj in ipairs(ContainedObjects) do
-            local index = i; if getdata then index = index-1 else index = obj.index end -- change value for getObjects / getData
-            local objtags; if getdata then objtags = obj.Tags else objtags = obj.tags end -- change value for getObjects / getData
-            if (tag.tags and objtags) then
-                if tool.tags.tagFound(objtags, tag.tags, tag.search) then
-                    if switch then
-                        for key,find in pairs(switch) do
-                            if obj[key] == find then
-                                table.insert(z, index)
-                            end
-                        end
-                    else
-                        table.insert(z, index)
-                    end
-                end
-            end
-        end
-
-    table.sort(z, function(a,b) return a>b end)
-    return z
-end
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
 return takeObjectUtils

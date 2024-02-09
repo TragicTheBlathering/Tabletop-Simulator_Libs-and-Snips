@@ -9,8 +9,6 @@ local event_BagScaler = {}
           tool.setBagTexture=require("/_libs/bagTools/setBagTextureFromContents").simulateTokenStack
           tool.ejectInvalidObjs=require("/_libs/bagTools/ejectInvalidObjects").eject
 
-    local globalVar = {}
-          globalVar.scaleBag = require("/MageKnightV3/GlobalVariables").scaleBagData
 
     runExitBag = true
     changeImage = nil

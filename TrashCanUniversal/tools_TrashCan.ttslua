@@ -6,6 +6,7 @@ local trashTools = {}
 
     trashTools.tbls = {}
     trashTools.tbls.merge=require("/_libs/tableUtils/tableUtils").merge
+    --trashTools.tbls.deepMerge=require("/_libs/tableUtils/tableUtils").deepMerge
     trashTools.tbls.size=require("/_libs/tableUtils/tableUtils").tableSize
 
     trashTools.cast=require("/_libs/TrashCanUniversal/cast_trashcanUniversal").cast
@@ -15,7 +16,7 @@ local trashTools = {}
     trashTools.defaultGlobalVariable = {
         tag_validTrashOBJ = "trash_DiscardObject",
         trashID_="trashid_", discardObject='trash_discardobject', discardTarget='trash_discardtarget', specialCase='trash_specialcase', deleteme='trash_deleteme',
-        trashDrop_Yoffset = 1,
+        --specialDrop_Yoffset = {},
         }
 
 return trashTools

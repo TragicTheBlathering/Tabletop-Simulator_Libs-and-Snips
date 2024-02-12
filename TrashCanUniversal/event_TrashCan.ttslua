@@ -5,9 +5,13 @@ local trashSetting = tool.defaultGlobalVariable
 
 function trashCan_Universal.enterContainer(bag, obj, gVariable)
     if bag.hasTag('event_TrashCan') then
-        trashSetting = tool.tbls.merge(trashSetting, gVariable)
+        local var = gVariable.customTrashData
+        trashSetting = tool.tbls.merge(trashSetting, var)
+        tool.specialCase = gVariable.specialCaseFunc
         tool.wait.dropIntoBox(bag, obj, prepTrashBag, time)
     end
+    --print(logString(gVariable,'\n --- gVariable'))
+    --print(logString(trashSetting,'\n --- trashSetting'))
 end
 --------------------------------------------------------------------------------
 ------ Start Trash Bag Code ----------------------------------------------------
@@ -48,7 +52,7 @@ function processObjectsInList(uniqueCast, container, TrashBag)
                 destroyObject(container.takeObject({index = dex}))
             elseif id.validDiscardObj then
                 if id.action == trashSetting.specialCase then
-                    print("--- DO : Action :: SPECIAL")
+                    tool.specialCase(container.takeObject({index = dex}), TrashBag, uniqueCast[trashSetting.specialCase], id)
                 elseif id.action == trashSetting.discardObject then
                     moveObject(container.takeObject({index = dex}), TrashBag, uniqueCast[id.id], id)
                 end
@@ -65,23 +69,30 @@ function setIDs(tagList, obj)
             id.action = trashSetting.discardObject
             id.validDiscardObj = true
             id.obj = obj
+            break
 
         elseif tag == trashSetting.specialCase then
             --print(trashSetting.specialCase..' : '..tag)
             id.action = trashSetting.specialCase
             id.validDiscardObj = true
             id.obj = obj
+            break
 
         elseif tag == trashSetting.deleteme then
             id.action = trashSetting.deleteme
             id.destory = true
             id.obj = obj
+            break
         end
-
-        for k,t in ipairs(tagList) do
-            if string.find(string.lower(t), trashSetting.trashID_, 1, true) then
-                id.id = tag
-            end
+    end
+    for k,t in ipairs(tagList) do
+        local tag2 = string.lower(t)
+        if string.find(tag2, trashSetting.trashID_, 1, true) then
+            id.id = tag2
+            break
+        elseif tag2 == trashSetting.specialCase then
+            id.id = tag2
+            break
         end
     end
     --print(logString(id, '\n------ id (setIDs)'))
@@ -183,9 +194,46 @@ function uniqueCastLocations(TrashBag, removedDeckList)
             end
         end
     end
-
-    return tool.cast(locaton, trashSetting)
+    location = tool.cast(locaton, trashSetting)
+    location = setSpecialCase(TrashBag, removedDeckList, location)
+    --print(logString(location,'\n --- location'))
+    return location
 end
+
+function setSpecialCase(TrashBag, removedDeckList, location)
+    local sc = {}
+    for k,obj in ipairs(TrashBag.getObjects()) do
+        if obj.tags[1] then
+            local tagList = obj.tags
+            for k,t in pairs(tagList) do
+                local tag = string.lower(t)
+                if trashSetting.specialCase == tag then
+                    for k,t in pairs(tagList) do
+                        local tag = string.lower(t)
+                        if string.find(tag, trashSetting.trashID_, 1, true) then
+                            sc[tag] = trashSetting[trashSetting.specialCase][tag]
+                            break
+                        end
+                    end
+                    break
+                end
+            end
+        end
+    end
+    location[trashSetting.specialCase] = sc
+    --print(logString(location, '\n--- location'))
+    return location
+end
+
+--[[
+--print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+for k,t in pairs(tagList) do
+    if string.find(string.lower(t), trashSetting.trashID_, 1, true) then
+        id = tag
+    end
+end
+trashSetting.specialDrop_Yoffset[id] = 1
+]]
 
 function setDiscardLocations(obj)
     local tagList = obj.tags
@@ -195,14 +243,14 @@ function setDiscardLocations(obj)
         if tag == trashSetting.discardObject then
             id.action = trashSetting.discardObject
             id.validDiscardObj = true
-        end
-
-        for k,t in pairs(tagList) do
-            if string.find(string.lower(t), trashSetting.trashID_, 1, true) then
-                id.id = tag
+        else
+            for k,t in pairs(tagList) do
+                if string.find(string.lower(t), trashSetting.trashID_, 1, true) then
+                    id.id = tag
+                    break
+                end
             end
         end
-
     end
     return id
 end

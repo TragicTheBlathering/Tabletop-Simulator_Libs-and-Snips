@@ -1,89 +1,70 @@
 local cast_trashcanUniversal = {}
 --------------------------------------------------------------------------------
 -- Global Variabels
-local ShowCast = true -- cast debug visial
---local DiscardPlatforms = nil
---local YOffset = 1
-
+local showCast = true -- cast debug visial
 local trashSetting = {}
 --------------------------------------------------------------------------------
 --- Main Function to Call ------------------------------------------------------
-function cast_trashcanUniversal.cast(trashIDList, treshseting)
-    trashSetting = treshseting
-    --print('\n-------------------------------\n +++ Inside Cast +++ \n-------------------------------')
-    return castByString(trashIDList, trashSetting)
+function cast_trashcanUniversal.cast(trashIDList, trashseting)
+    --print(logString(trashseting, "\n --- trashseting (cast_trashcanUniversal.cast)"))
+    trashSetting = trashseting
+    return castByStringKey(trashIDList)
 end
 --------------------------------------------------------------------------------
 --- Cast Code ------------------------------------------------------------------
-function castByString(TrashIDList)
-    --print(logString(TrashIDList, '\n ---- TrashIDList'))
-    for id,kind in pairs(TrashIDList) do
-        local target = getObjectsWithAllTags({trashSetting.discardTarget, id}) -- getObjectsWithAllTags() is an official TTS function, not yet added to API page
-        --print(logString(target, '\n ---- target'))
-        --print(id..' : '..kind)
-        if target[1] then target=target[1] end -- there should be only 1 target, if more than one vlid target, it only takes the FIRST found version
-        TrashIDList[id] = cast(target, id, kind)
+function castByStringKey(TrashIDList)--print(logString(TrashIDList, '\n ---- TrashIDList'))
+    for id,_ in pairs(TrashIDList) do--print(id..' : '..' : '..trashSetting.discardTarget..' : '..tostring(kind))
+        local target = getObjectsWithAllTags({trashSetting.discardTarget, id}) -- getObjectsWithAllTags() is an official TTS function. Get all objects in scene that have matching tags to a string table. ALL strings must be found to return true
+        if target[1] then target=target[1] end -- there should be only 1 target, if more than one valid target, it only takes the FIRST found version
+        TrashIDList[id] = cast(target, id)
     end
     return TrashIDList
 end
 
-function cast(target, id, kind)
-    local platform = {size=Vector(2,2,2), posOffset=Vector(0, 0.9, 0)}
-    local originTarget = Vector(0,0,0)
-    local size = Vector(0,0,0)
-        if target.type == 'Scripting' then
-            size = target.getScale()
-        else
-            size = platform.size
-        end
-
-    if kind ~= trashSetting.specialCase then
-        originTarget = target.getPosition() + platform.posOffset
+function cast(target, id)
+    --print(logString(cast, '\n ---- cast')); print(target.getName())
+    local platform = {size=Vector(2,2,2), posOffset=Vector(0, 0.7, 0), originTarget = target.getPosition()}
+    if target.type == 'Scripting' then
+        platform.size = target.getScale()
+        platform.posOffset=Vector(0,0,0)
     end
 
-    local zone = Physics.cast({ origin=originTarget,
+    local zone = Physics.cast({ origin=platform.originTarget + platform.posOffset,
                                 direction={0,1,0},
                                 type=3,
                                 max_distance=0,
-                                size=size,
-                                debug=ShowCast})
-            --print('INSIDE CAST')
-    return processCast(target, zone, id, kind)
+                                size=platform.size,
+                                debug=showCast})--print('INSIDE CAST')
+    return processCast(target, zone, id)
 end
 
-function processCast(target, zone, id, kind)
-    --print('INSIDE ProcessCast')
-    local z = {}
-    local YOffset = 1 -- uniqueCastID.Y = uniqueCastID.Y + getSizeofObj(obj).y+0.2
+function processCast(target, zone, id)--print(logString(id, '\n ---- id'))
+    --print(logString(target, "\n --- Target"))
+    --print(logString(zone, "\n --- zone"))
+    --print(logString(id, "\n --- id"))
+    --print(logString(trashSetting, "\n --- trashSetting (processCast)"))
     local no_cardDeckBag = true
-    if kind == trashSetting.specialCase then
-        -- Do nothing in specialCase
-    else
-        if not zone[1] then
-            print('5-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
-            --z.targetObj = target
-            --z.targetToMoveAbove = target
-        else
-            for k,found in pairs(zone) do
-                local obj = found.hit_object
-                z.platform = target
-                if (obj.type == 'Card' or obj.type == 'Deck' or obj.type == 'Bag') then
-                    --print('Card Deck or Bag : '..target.getName()..' : '..obj.getName())
-                    z.targetToMoveAbove = obj
-                    no_cardDeckBag = false
-                end
-                if no_cardDeckBag then
-                    --print('no_cardDeckBag : '..target.getName()..' : '..obj.getName())
-                    z.targetToMoveAbove = target
-                end
+    local z = {}
+
+    if zone[1] then
+        z.platform = target
+        for k,found in pairs(zone) do
+            local obj = found.hit_object
+            if (obj.type == 'Card' or obj.type == 'Deck' or obj.type == 'Bag') then--print('Card Deck or Bag : '..target.getName()..' : '..obj.getName())
+                z.targetToMoveAbove = obj
+                z.Y=setYOffset(z)
+                no_cardDeckBag = false
             end
-            --print(obj)
+            if no_cardDeckBag then--print('no_cardDeckBag : '..target.getName()..' : '..obj.getName())
+                z.targetToMoveAbove = target
+                z.Y=setYOffset(z)
+            end
         end
+    else
+        z.platform = target
+        z.targetToMoveAbove = target
+        z.Y=setYOffset(z)
     end
-    z.id=id
-    z.kind=kind
-    z.Y=setYOffset(z)
-    --print(logString(z,'\n--- Z'))
     return z
 end
 
@@ -91,18 +72,7 @@ function setYOffset(id)
     local obj = id.targetToMoveAbove
     return obj.getPosition().y + getSizeofObj(obj).y + 0.5
 end
---[[
-if obj.getData().Name == "Card" then
-print('\n+++++++++++++++++++++++++')
-print(obj.getData().Name)
-yOffset = 1
-else
-yOffset = getSizeofObj(obj).y
-end
 
-local offset = obj.getPosition().y + yOffset + 0.5
-
-]]
 function getSizeofObj(obj)
     local size = obj.getBoundsNormalized().size
     return size

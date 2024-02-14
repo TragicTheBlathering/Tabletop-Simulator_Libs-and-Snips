@@ -110,6 +110,34 @@ if useKeys then
 else
     comparTag = tag
 end]]
+
+--------------------------------------------------------------------------------
+-- This will search a bag and all the object tags in it.
+-- If the tag is found on ALL objects in the bag, it returns true
+function tagUtils.tagIsFoundOnAllObjectsInBag(targetString, contents)
+    local listOfLists = {}
+    for k,o in pairs(contents) do
+        table.insert(listOfLists, o.tags)
+    end
+
+        for _, sublist in ipairs(listOfLists) do
+        local foundInSublist = false
+
+        for _, element in ipairs(sublist) do
+            if string.lower(element) == string.lower(targetString) then
+                --print(element.." : "..targetString)
+                foundInSublist = true
+                break
+            end
+        end
+
+        if not foundInSublist then
+            return false  -- String not found in this sublist
+        end
+    end
+    return true  -- String found in all sublists
+end
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------

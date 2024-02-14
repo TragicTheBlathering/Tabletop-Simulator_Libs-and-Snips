@@ -65,35 +65,38 @@ function changeBagTexture_useTetxureOfTopObjectInBag(bag, value)
 end
 
 function changeBagTexture_specificURLs(bag, value)
+    print("----- USE SPESIFIC URLS")
     local bagData = bag.getData()
     local contentCount = tool.tablesize(bagData.ContainedObjects)
     local bagTags = bag.getTags()
     local matchingTag = false
 
     if contentCount > 0 then
-        matchThisTag = tool.commonTag(value.tags, bagData.ContainedObjects[contentCount].Tags)
-        bag.setCustomObject({diffuse=value.tags[matchThisTag]})
+        print('change')
+        local matchingTag = tool.commonTag(value.tags, bagData.ContainedObjects[contentCount].Tags, true)
+        --matchThisTag = tool.commonTag(value.tags, bagData.ContainedObjects[contentCount].Tags)
+        print(matchingTag)
+        bag.setCustomObject({diffuse=value.tags[matchingTag]})
     else
+        print('empty')
         bag.setCustomObject({diffuse=value.empty.url})
     end
     bag.reload()
 end
 
 function changeBagTexture_hex(bag, value)
+    --print("----- USE HEX COLOUR")
     local contents = bag.getObjects()
     local bagTags = bag.getTags()
 
     local matchingTag = false
     if #contents > 0 then
-        --print(#contents)
-        matchThisTag = tool.commonTag(value.tags, bagTags)
-
-        if tool.foundTag(matchThisTag, contents) then
-            bag.setColorTint(value.tags[matchThisTag])
+        local matchingTag = tool.commonTag(value.tags, bagTags, true)
+        if tool.foundTag(matchingTag, contents) then
+            bag.setColorTint(value.tags[matchingTag])
         else
             bag.setColorTint(errorTint)
         end
-
     else
         bag.setColorTint(value.empty.hex)
     end

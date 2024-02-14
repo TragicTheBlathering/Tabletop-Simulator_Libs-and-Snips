@@ -61,6 +61,7 @@ function processBagScaler(bag, obj, variableData, idTag, time)
                 end
             end, function() return scaleBagComplete end)
         end
+    --print("--- PAST IT ---------------------------------------------------------")
 end
 
 function event_virtualTokenStacks.enterContainer(bag, obj, variableData, idTag, time)

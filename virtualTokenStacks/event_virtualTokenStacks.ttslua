@@ -1,0 +1,96 @@
+--[[
+local tool = {}
+tool.virtualTokenStack = require("/_libs/virtualTokenStacks/event_virtualTokenStacks")
+
+function onObjectEnterContainer(bag, obj)
+    tool.virtualTokenStack.enterContainer(bag, obj, globalVar.vStackData, 'event_virtualTokenStack')
+end
+function onObjectLeaveContainer(bag, obj)
+    tool.virtualTokenStack.exitContainer(bag, obj, globalVar.vStackData, 'event_virtualTokenStack')
+end
+
+: Bag Tags :
+event_virtualTokenStack
+event_virtualTokenStack_NoScale
+event_virtualTokenStack_NoTextureChange
+]]
+
+local event_virtualTokenStacks = {}
+    local tool = {}
+          tool.wait = {}
+          tool.wait.dropIntoBox=require("/_libs/waitUtils/waitUtils").dropIntoBox
+
+          tool.findTag = require("/_libs/tagUtils/tagUtils").singleTagFoundinTagList
+
+          tool.scaleBag=require("/_libs/virtualTokenStacks/scaleBags").fromContents
+          tool.setBagTexture=require("/_libs/virtualTokenStacks/setBagTextureFromContents").simulateTokenStack
+          tool.ejectInvalidObjs=require("/_libs/virtualTokenStacks/ejectInvalidObjects").eject
+
+    local vStackData = {}
+    local vStackOptions = {noScale=true, noTextureChange=true}
+
+    runExitBag = true
+    scaleBagComplete = false
+
+function processBagScaler(bag, obj, variableData, idTag, time)
+    runExitBag = false
+        --print(logString(vStackData, '\n --- vStackData'))
+        local value = nil
+        local bagTag = bag.getTags()
+        -- Scale Bag
+        if vStackOptions.noScale then
+            for tag,v in pairs(vStackData) do
+                if bag.hasTag(tag) then
+                    value = vStackData[tag]
+                    scaleBagComplete = tool.scaleBag(bag, value) -- returns true when finished
+                end
+            end
+        else
+            scaleBagComplete = true
+        end
+        -- Chnage the Look of the Bag
+        if vStackOptions.noTextureChange then
+            Wait.condition(function() -- wait for scaleBag to complete
+                for tag,v in pairs(vStackData) do
+                    if bag.hasTag(tag) then
+                        scaleBagComplete = false
+                        value = vStackData[tag]
+                        tool.setBagTexture(bag, value)
+                        runExitBag = true
+                    end
+                end
+            end, function() return scaleBagComplete end)
+        end
+end
+
+function event_virtualTokenStacks.enterContainer(bag, obj, variableData, idTag, time)
+    if tool.findTag(bag.getTags(), idTag, true) then
+        if runExitBag then
+            setVirtualStackOptions(bag.getTags())
+            vStackData = variableData
+            tool.wait.dropIntoBox(bag, obj, processBagScaler, time)
+        end
+    end
+end
+
+function event_virtualTokenStacks.exitContainer(bag, obj, variableData, idTag, time)
+    if tool.findTag(bag.getTags(), idTag, true) then
+        if runExitBag then
+            setVirtualStackOptions(bag.getTags())
+            bagScaleData = variableData
+            tool.wait.dropIntoBox(bag, obj, processBagScaler, time)
+        end
+    end
+end
+
+function setVirtualStackOptions(tags)
+    vStackOptions = {noScale=true, noTextureChange=true}
+    if tool.findTag(tags, 'noScale', true) then
+        vStackOptions.noScale = false
+    end
+    if tool.findTag(tags, 'noTextureChange', true) then
+        vStackOptions.noTextureChange = false
+    end
+end
+
+return event_virtualTokenStacks

@@ -5,7 +5,7 @@ local tool = {}
 
 function phraseVariable.buildVariables(bag, d)
     --print('--=== Phraser ===--')
-    --print(logString(d))
+    --print(logString(d), '\n---- D(ata)')
     local data = {}
         data.type = d.type
         data.pivot = d.pivot or "center"

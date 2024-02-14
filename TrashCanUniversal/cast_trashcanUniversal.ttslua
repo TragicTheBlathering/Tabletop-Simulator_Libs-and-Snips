@@ -1,7 +1,7 @@
 local cast_trashcanUniversal = {}
 --------------------------------------------------------------------------------
 -- Global Variabels
-local showCast = true -- cast debug visial
+local showCast = false -- cast debug visial
 local trashSetting = {}
 --------------------------------------------------------------------------------
 --- Main Function to Call ------------------------------------------------------
@@ -39,10 +39,6 @@ function cast(target, id)
 end
 
 function processCast(target, zone, id)--print(logString(id, '\n ---- id'))
-    --print(logString(target, "\n --- Target"))
-    --print(logString(zone, "\n --- zone"))
-    --print(logString(id, "\n --- id"))
-    --print(logString(trashSetting, "\n --- trashSetting (processCast)"))
     local no_cardDeckBag = true
     local z = {}
 

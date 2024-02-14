@@ -2,7 +2,7 @@ local tagUtils = {}
 
 local tools = {}
       tools.tags=require("/_libs/setIndexType/setIndexType").tags -- obj.Tag or obj.tag
-
+      tools.tblSize=require("/_libs/tableUtils/tableUtils").tableSize
 
 -- Test an object to see if it comes form getObject() or getData().ContainedObjects
 -- return the tags
@@ -18,7 +18,7 @@ function tagUtils.getTagKey(objList)
     return false, false
 end
 
-
+-- Return true or false is a single tag is found in a list of tags
 function tagUtils.singleTagFoundinTagList(tagTable, str, find)
     if tagTable then
         find = find or false
@@ -40,7 +40,7 @@ function tagUtils.singleTagFoundinTagList(tagTable, str, find)
 end
 
 --- TagFound --- ---------------------------------------------------------------
---- search a tag list for another tag. useFind is a bool. flase / mission  will look for exact match. true will use string.find()
+--- search a tag list for another tag. useFind is a bool. flase/nil ==  look for exact match. true will use string.find()
 function tagUtils.isTagFound_ObjList(objList, tags, subStringSearch) -- useFind BOOL : use == or use string.find()
     local tKey = tagUtils.getTagKey(objList) -- set o.Tags or o.tags
     local tagList = {}
@@ -76,7 +76,40 @@ function tagUtils.isTagFound_ObjList(objList, tags, subStringSearch) -- useFind 
     return false
 end
 
+function tagUtils.returnTagsfoundinTagList(tagList, objList, useKeys) -- useFind BOOL : use keys insead of values form tagList
+    useKeys = useKeys or false
+    local tagListReturn = {}
 
+    if type(tagList) == "string" then -- if tagList to search is a single string, put it inside a table, otherwise use table as is.
+        tagList = {string.lower(tagList)}
+    end
+
+    for k, tag in pairs(objList) do
+        local objTag = string.lower(tag)
+        for key, tag in pairs(tagList) do
+            local comparTag = useKeys and key or tag
+            if objTag == string.lower(comparTag) then
+                table.insert(tagListReturn, comparTag)
+            end
+        end
+    end
+
+    if tools.tblSize(tagListReturn) == 0 then
+        tagListReturn = false
+    elseif tools.tblSize(tagListReturn) == 1 then
+        tagListReturn = tagListReturn[1]
+    end
+
+    return tagListReturn
+end
+--[[ -- local comparTag = useKeys and key or tag
+(This code dose the same as the if statment below)
+local comparTag = nil
+if useKeys then
+    comparTag = key
+else
+    comparTag = tag
+end]]
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------

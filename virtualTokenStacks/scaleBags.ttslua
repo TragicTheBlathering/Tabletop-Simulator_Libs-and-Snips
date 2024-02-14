@@ -11,28 +11,32 @@ GlobalVariables.scaleBagData = {
 ]]
 local scaleBags = {}
 local tool = {}
-      tool.buildVariable=require("/_libs/bagTools/phraseVariable").buildVariables
+      tool.buildVariable=require("/_libs/virtualTokenStacks/phraseVariable").buildVariables
+
 --------------------------------------------------------------------------------
 --- SCALE BAG ------------------------------------------------------------------
 function scaleBags.fromContents(bag, value)
     local value = tool.buildVariable(bag, value)
+    --print(logString(value))
 
     local bagQuantity = bag.getQuantity()
     local pos = bag.getPosition()
     local scale = bag.getScale()
 
-    --print(logString(value))
     if bagQuantity > 0 then
         local Y_Scaler = value.baseScale.y + (bagQuantity * value.scaleValue)
         bag.setScale(Vector(scale.x, Y_Scaler, scale.z))
 
-        --print("!!!!!")
-
         --- Adjust Position
         if value.pivot == 'center' then
             --print('USING CENTER PIVOT')
-            local Y_Pos = (bag.getBounds().size.y/2 + value.basePos.y) - (value.origSizeY/2)
-            bag.setPosition(Vector(pos.x, Y_Pos, pos.z))
+            if value.upsideDownBag then
+                local Y_Pos = (bag.getBounds().size.y/2 + value.basePos.y) - (value.origSizeY) - (value.origSizeY)/2
+                bag.setPosition(Vector(pos.x, Y_Pos, pos.z))
+            else
+                local Y_Pos = (bag.getBounds().size.y/2 + value.basePos.y) - (value.origSizeY/2)
+                bag.setPosition(Vector(pos.x, Y_Pos, pos.z))
+            end
 
         elseif value.pivot == 'bottom' then
             --print('USING BOTTOM PIVOT')
@@ -44,13 +48,14 @@ function scaleBags.fromContents(bag, value)
         --Bottom Piviot Requires no position adjustment after scale if not upside down
 
         elseif value.pivot == 'top' then
-            print('USING TOP PIVOT')
+            printToAll('USING TOP PIVOT/nNot yet Coded', 'Orange')
             --Not Coded as I have never needed this yet
         end
     else
         bag.setScale(Vector(scale.x, value.baseScale.y, scale.z))
         bag.setPosition(Vector(pos.x, value.basePos.y, pos.z))
     end
+
     return true
 end
 

@@ -65,20 +65,17 @@ function changeBagTexture_useTetxureOfTopObjectInBag(bag, value)
 end
 
 function changeBagTexture_specificURLs(bag, value)
-    print("----- USE SPESIFIC URLS")
+    --print("----- USE SPESIFIC URLS")
     local bagData = bag.getData()
     local contentCount = tool.tablesize(bagData.ContainedObjects)
     local bagTags = bag.getTags()
     local matchingTag = false
 
     if contentCount > 0 then
-        print('change')
         local matchingTag = tool.commonTag(value.tags, bagData.ContainedObjects[contentCount].Tags, true)
-        --matchThisTag = tool.commonTag(value.tags, bagData.ContainedObjects[contentCount].Tags)
-        print(matchingTag)
+        --print(matchingTag)
         bag.setCustomObject({diffuse=value.tags[matchingTag]})
     else
-        print('empty')
         bag.setCustomObject({diffuse=value.empty.url})
     end
     bag.reload()

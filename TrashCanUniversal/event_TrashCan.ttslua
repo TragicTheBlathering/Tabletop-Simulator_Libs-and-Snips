@@ -3,12 +3,12 @@ local trashCan_Universal = {}
 local tool = require("/_libs/TrashCanUniversal/tools_TrashCan")
 local trashSetting = tool.defaultGlobalVariable
 
-function trashCan_Universal.enterContainer(bag, obj, gVariable)
+function trashCan_Universal.enterContainer(bag, obj, gVariable, time)
     if bag.hasTag('event_TrashCan') then
         local var = gVariable.customTrashData
         trashSetting = tool.tbls.merge(trashSetting, var)
         tool.specialCase = gVariable.specialCaseFunc
-        tool.wait.dropIntoBox(bag, obj, prepTrashBag, time)
+        tool.wait.dropIntoBox('trashCan_Universal', bag, obj, prepTrashBag, time)
     end
     --print(logString(gVariable,'\n --- gVariable'))
     --print(logString(trashSetting,'\n --- trashSetting'))
@@ -18,7 +18,8 @@ end
 
 --------------------------------------------------------------------------------
 --- remove any decks from the trash and then move to processing ---------------------
-function prepTrashBag(TrashBag, objData)
+function prepTrashBag(args)
+    local TrashBag = args.bag
     local removedDeckList = nil
     Wait.frames(function()
         removedDeckList = removeDecksFormTrash(TrashBag)
@@ -224,16 +225,6 @@ function setSpecialCase(TrashBag, removedDeckList, location)
     --print(logString(location, '\n--- location'))
     return location
 end
-
---[[
---print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-for k,t in pairs(tagList) do
-    if string.find(string.lower(t), trashSetting.trashID_, 1, true) then
-        id = tag
-    end
-end
-trashSetting.specialDrop_Yoffset[id] = 1
-]]
 
 function setDiscardLocations(obj)
     local tagList = obj.tags

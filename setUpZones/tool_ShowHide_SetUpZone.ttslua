@@ -1,4 +1,5 @@
 local setupPlatform = nil
+local setupZone = nil
 local setUpObjects = nil
 local offset = Vector(-130,-93,0)
 local showCast = false
@@ -13,6 +14,8 @@ function onload()
     for k,v in pairs(getAllObjects()) do
         if v.hasTag("SetUpZone_Platform") then
             setupPlatform = v
+        elseif v.hasTag("SetUpZone_Zone") then
+            setupZone = v
         end
     end
 
@@ -22,12 +25,35 @@ end
 function b_Function(obj, color, alt_click)
     setUpObjects = cast()
     --print(logString(setUpObjects,"\nSetup Objects"))
-    if setupPlatform.getPosition().y > -40 then
-        lowerPlatform()
+    if alt_click then
+        --print(setupZone.getName())
+        if setupZone.getPosition().y > -40 then
+            lowerZone()
+        else
+            raiseZone()
+        end
     else
-        raisePlatform()
+        if setupPlatform.getPosition().y > -40 then
+            lowerPlatform()
+        else
+            raisePlatform()
+        end
     end
 
+end
+
+function raiseZone()
+    local x = setupZone.getPosition().x
+    local y = setupZone.getPosition().y
+    local z = setupZone.getPosition().z
+    setupZone.setPosition(Vector(x+offset.x, y-offset.y, z))
+end
+
+function lowerZone()
+    local x = setupZone.getPosition().x
+    local y = setupZone.getPosition().y
+    local z = setupZone.getPosition().z
+    setupZone.setPosition(Vector(x-offset.x, y+offset.y, z))
 end
 
 function raisePlatform()

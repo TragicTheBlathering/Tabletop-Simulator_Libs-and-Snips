@@ -1,12 +1,70 @@
 local waitUtils = {}
 
 local wait_ids ={}
+local waitIDs = {}
 
+--[[
 function waitUtils.dropIntoBox(bag, obj, func, time) -- '0.8'
     local objData = obj.getData()
     time = time or 0.8
     if wait_ids[bag] then Wait.stop(wait_ids[bag]) end
     wait_ids[bag] = Wait.time(function() func(bag, objData) end, time)
+end
+]]
+
+function waitUtils.dropIntoBox(id, bagObj, objDrop, func, ...) -- '0.8' ... PramTable for Sent Function and number or Fn string for frames or time
+    local bagID = bagObj.getGUID()
+    local sum = nil
+    local useFrames = false
+    local args = {...}
+    local funcPrams = {}
+    local time = 0.8
+
+    for i, arg in ipairs(args) do
+        if type(arg) == "table" then
+            --print('FOUND : table')
+            funcPrams = arg
+        elseif type(arg) == "number" then
+            --print('FOUND : number')
+            time = arg
+        elseif type(arg) == "string" then
+            --print('FOUND : string')
+            time = arg
+        end
+    end
+    funcPrams.bag = bagObj
+    funcPrams.objDropData = objDrop.getData()
+    --table.insert(funcPrams, {bag=bagObj, objDropData=objDrop.getData()})
+    local bag = bagObj
+
+    if type(time) == "string" then -- test if time is a string
+        if string.match(time, "%d") ~= nil then -- test if the string has numbers in it
+            if sum == nil then sum = 0 end
+            for numberStr in time:gmatch("%d+") do -- extract numbers in chat order tonumber() as var "sum"
+                sum = sum + tonumber(numberStr)
+                useFrames = true
+            end
+        end
+    end
+    if sum then time = sum end
+
+    if waitIDs[id] then
+        if waitIDs[id][bagID] then
+            Wait.stop(waitIDs[id][bagID])
+            waitIDs[id][bagID] = {}
+        end
+    else
+        waitIDs[id] = {}
+    end
+
+    if useFrames then
+        --print('frames')
+        waitIDs[id][bagID] = Wait.frames(function() func(funcPrams) end, time)
+    else
+        --print(time)
+        waitIDs[id][bagID] = Wait.time(function() func(funcPrams) end, time)
+    end
+
 end
 
 function waitUtils.frames(func, time, ...)--(bag, obj, func, time) -- '0.8'

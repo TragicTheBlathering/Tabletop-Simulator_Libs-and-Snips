@@ -18,6 +18,95 @@ function tagUtils.getTagKey(objList)
     return false, false
 end
 
+--[[ Wrapper for getObjectsWithAllTags() the default TTS function.
+     It takes a tagList and additional Tag list, then finds ALL objects with ALL tags
+     if only 1 object it found it returns that single object, or an object list, or nil
+     Send as many tags or tags list as you like. It can take Lists, or single strings for each arg]]
+function tagUtils.getObjectsWithAllTags_FromTagLists(...)
+    local args = {...}
+    local tagLists = {}
+    for k, v in pairs(args) do
+        if type(v) == "string" then
+            table.insert(tagLists, {v})
+        else
+            table.insert(tagLists, v)
+        end
+    end
+
+    local tagList = {}
+    for _, tbl in ipairs(tagLists) do
+      for _, element in ipairs(tbl) do
+          table.insert(tagList, element)
+      end
+    end
+
+    local objList = getObjectsWithAllTags(tagList)
+    if #objList == 1 then
+        return objList[1]
+    elseif #objList > 1 then
+        return objList
+    end
+
+    return nil
+end
+
+-- Return true or false is ALL tags are found in a list of tags
+function tagUtils.allTagsInListFoundinTagList(ListToSearch, tagList, find)
+    find = find or false
+    local list = {}
+    for k,key in pairs(tagList) do
+        list[key] = false
+    end
+
+    for k, line in pairs(ListToSearch) do
+        for key, _ in pairs(list) do
+            if find then
+                if string.find(string.lower(line), string.lower(key), 1, true) then
+                    list[key] = true
+                end
+            else
+                if line == key then
+                    list[key] = true
+                end
+            end
+        end
+    end
+    for k, found in pairs(list) do
+        if not found then
+            return false
+        end
+    end
+    return true
+end
+
+--[[
+local list = {}
+for k,v in pairs(tagList) do
+    list[v] = false
+end
+
+for k,v in pairs(ListToSearch) do
+    for t, o in pairs(list) do
+        if find then
+            if string.find(string.lower(t), string.lower(v), 1, true) then
+                print(v.." : "..t)
+                list[v] = true
+            end
+        else
+            if t == v then
+                list[v] = true
+            end
+        end
+    end
+end
+
+for k,v in pairs(list) do
+    if not v then
+        return false
+    end
+end
+]]
+
 -- Return true or false is a single tag is found in a list of tags
 function tagUtils.singleTagFoundinTagList(tagTable, str, find)
     if tagTable then

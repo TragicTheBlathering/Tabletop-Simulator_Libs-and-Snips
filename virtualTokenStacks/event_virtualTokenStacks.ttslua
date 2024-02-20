@@ -1,20 +1,3 @@
---[[
-local tool = {}
-tool.virtualTokenStack = require("/_libs/virtualTokenStacks/event_virtualTokenStacks")
-
-function onObjectEnterContainer(bag, obj)
-    tool.virtualTokenStack.enterContainer(bag, obj, globalVar.vStackData, 'event_virtualTokenStack')
-end
-function onObjectLeaveContainer(bag, obj)
-    tool.virtualTokenStack.exitContainer(bag, obj, globalVar.vStackData, 'event_virtualTokenStack')
-end
-
-: Bag Tags :
-event_virtualTokenStack
-event_virtualTokenStack_NoScale
-event_virtualTokenStack_NoTextureChange
-]]
-
 local event_virtualTokenStacks = {}
     local tool = {}
           tool.wait = {}
@@ -32,8 +15,9 @@ local event_virtualTokenStacks = {}
     runExitBag = true
     scaleBagComplete = false
 
-function processBagScaler(bag, obj, variableData, idTag, time)
+function processBagScaler(args)
     runExitBag = false
+        local bag = args.bag
         --print(logString(vStackData, '\n --- vStackData'))
         local value = nil
         local bagTag = bag.getTags()
@@ -51,6 +35,7 @@ function processBagScaler(bag, obj, variableData, idTag, time)
         -- Chnage the Look of the Bag
         if vStackOptions.noTextureChange then
             Wait.condition(function() -- wait for scaleBag to complete
+                --print(logString(vStackData, '\n --- vStackData'))
                 for tag,v in pairs(vStackData) do
                     if bag.hasTag(tag) then
                         scaleBagComplete = false
@@ -69,7 +54,7 @@ function event_virtualTokenStacks.enterContainer(bag, obj, variableData, idTag, 
         if runExitBag then
             setVirtualStackOptions(bag.getTags())
             vStackData = variableData
-            tool.wait.dropIntoBox(bag, obj, processBagScaler, time)
+            tool.wait.dropIntoBox(idTag, bag, obj, processBagScaler, time)
         end
     end
 end
@@ -78,8 +63,8 @@ function event_virtualTokenStacks.exitContainer(bag, obj, variableData, idTag, t
     if tool.findTag(bag.getTags(), idTag, true) then
         if runExitBag then
             setVirtualStackOptions(bag.getTags())
-            bagScaleData = variableData
-            tool.wait.dropIntoBox(bag, obj, processBagScaler, time)
+            vStackData = variableData
+            tool.wait.dropIntoBox(idTag, bag, obj, processBagScaler, time)
         end
     end
 end

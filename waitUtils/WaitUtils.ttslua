@@ -50,8 +50,13 @@ function waitUtils.dropIntoBox(id, bagObj, objDrop, func, ...) -- '0.8' ... Pram
 
     if waitIDs[id] then
         if waitIDs[id][bagID] then
+            --print('-------------------------------------------------------')
+            --print(logString(waitIDs[id], '\n----- waitIDs'))
+            --print('-------------------------------------------------------Stop')
             Wait.stop(waitIDs[id][bagID])
-            waitIDs[id][bagID] = {}
+            waitIDs[id][bagID] = false
+            --print(logString(waitIDs[id], '\n----- waitIDs'))
+            --print('-------------------------------------------------------')
         end
     else
         waitIDs[id] = {}
@@ -65,6 +70,7 @@ function waitUtils.dropIntoBox(id, bagObj, objDrop, func, ...) -- '0.8' ... Pram
         waitIDs[id][bagID] = Wait.time(function() func(funcPrams) end, time)
     end
 
+    --print(logString(waitIDs, '\n----- waitIDs'))
 end
 
 function waitUtils.frames(func, time, ...)--(bag, obj, func, time) -- '0.8'

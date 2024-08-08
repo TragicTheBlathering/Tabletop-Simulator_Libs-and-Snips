@@ -4,6 +4,71 @@ local tools = {}
       tools.tags=require("/_libs/setIndexType/setIndexType").tags -- obj.Tag or obj.tag
       tools.tblSize=require("/_libs/tableUtils/tableUtils").tableSize
 
+--Test to see is two objects have identical tags
+function tagUtils.hasObjsGotIdenticalTagsToTagList(table1, table2)
+  -- Check if tables are the same table instance
+  if table1 == table2 then
+    return true
+  end
+
+  -- Check if tables have the same type
+  if type(table1) ~= type(table2) then
+    return false
+  end
+
+  -- Handle nil and string cases
+  if table1 == nil or type(table1) == "string" then
+    return table1 == table2
+  end
+
+  -- Check table lengths
+  if next(table1) ~= next(table2) then
+    return false
+  end
+
+  -- Loop through each key-value pair in the first table
+  for key, value1 in pairs(table1) do
+    -- Check if key exists in the second table
+    if not table2[key] then
+      return false
+    end
+
+    -- Recursively compare values, considering tables
+    local value2 = table2[key]
+    if type(value1) == "table" and type(value2) == "table" then
+      if not areTablesEqual(value1, value2) then
+        return false
+      end
+    else
+      -- Compare non-table values directly
+      if value1 ~= value2 then
+        return false
+      end
+    end
+  end
+
+  -- If loop finishes without returning false, tables are equal
+  return true
+end
+
+
+
+--[[
+function tagUtils.hasObjsGotIdenticalTagsToTagList(tags, tagList)
+    if tools.tblSize(tags) == tools.tblSize(tagList) then
+        local found = {}
+        for i = 1, tools.tblSize(tags) do -- Loop 5 times
+            table.insert(found, false)
+        end
+
+        for k
+
+    else
+        return false
+    end
+end
+]]
+
 -- Test an object to see if it comes form getObject() or getData().ContainedObjects
 -- return the tags
 function tagUtils.getTagKey(objList)

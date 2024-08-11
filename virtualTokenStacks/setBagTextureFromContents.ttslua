@@ -12,15 +12,19 @@ local tool = {}
 local errorTint = {0.9607843, 0.2235294, 0.2235294} -- '#F53939'
 
 function setBagTextureFromContents.simulateTokenStack(bag, value)
-
+    --print("----- function setBagTextureFromContents.simulateTokenStack(bag, value)")
+    --print(logString(value))
     local value = tool.buildVariable(bag, value)
     if value.type.hex then
+        --print("!!!!")
         changeBagTexture_hex(bag, value)
 
     elseif value.type.url then
+        --print("@@@@")
         changeBagTexture_specificURLs(bag, value)
 
     elseif value.type.contents then
+        --print('????')
         changeBagTexture_useTetxureOfTopObjectInBag(bag, value)
     end
 
@@ -58,7 +62,12 @@ function changeBagTexture_useTetxureOfTopObjectInBag(bag, value)
         --matchThisTag = tool.commonTag(value.tags, bagData.ContainedObjects[contentCount].Tags)
     else
         local matchingTag = tool.commonTag(value.tags, bagData.Tags, true)
-        bag.setColorTint(value.empty.hex)
+        --print(logString(value))
+        if string.find(string.lower(value.empty.url), string.lower('http')) then
+          bag.setCustomObject({diffuse=value.empty.url})
+        else
+          bag.setColorTint(value.empty.hex)
+        end
         bag.setCustomObject({diffuse=value.tags[matchingTag]})
     end
     bag.reload()

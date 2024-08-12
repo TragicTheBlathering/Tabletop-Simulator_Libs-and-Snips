@@ -1,0 +1,123 @@
+local smoothMove = {}
+--- SmoothMove Multi-Move -----------------------------------------------------------------------------
+    -- obj is the object to move
+    -- input Vector(1,2,3), {1,2,3} to move to, in order.
+    -- you can input tables of these, and even mox them
+    -- example : movePos(obj, Vector(1,2,3), {{1,2,3}, {1,2,3}, Vector(1,2,3)}, {1,2,3}, Vector(1,2,3))
+
+    -- You can also add rotations to each move....
+    -- you need to use (pos=vec, rot=vec), you can use Vecotr(1,2,3) or {1,2,3}
+    -- example : movePos(obj, Vector(1,2,3), {pos=Vector(1,2,3), rot=Vector(1,2,3)}
+
+    --[[ Example of a complicated move
+    smooth.movePos(moveObj,
+                   function() moveObj.setColorTint('Green') end,
+                   {pos=movePos[1], rot=Vector(0, 90, 0)},
+                   {{7.77, 3.97, -0.46}, movePos[2], {pos=movePos[3], rot={341.26, 56.75, 187.21}}},
+                   movePos[4],
+                   {movePos[5], {pos={-9.60, 3.97, -13.30}, rot=Vector(90, 90, 0)},
+                   movePos[6],
+                   {pos=movePos[7], rot={0, 0, 0}},
+                   {26.34, 1.74, 15.41}
+               })
+    ]]
+
+    function smoothMove.movePos(obj, ...)
+        local posList, func = flattenArgs(obj, ...)
+        --print(logString(posList, '\n--- posList'))
+        multiMove(obj, func, table.unpack(posList))
+    end
+    --- Private Functions for MovePos ------------------------------------------
+    function flattenArgs(obj, ...)
+        local result = {}
+        local args = {...}  -- Capture the variable arguments into a table
+        local func = false
+
+        for k,vec in ipairs(args) do
+            if type(vec) == "function" then
+                func = vec
+            elseif type(vec[1]) == "table" then
+                for k,v in pairs(vec) do
+                    table.insert(result, v)
+                end
+            else
+                table.insert(result, vec)
+            end
+        end
+
+        if func ~= false then
+            return unpackVectors(obj, result), func
+        else
+            return unpackVectors(obj, result), false
+        end
+    end
+
+    function unpackVectors(obj, args)
+        local rotation = obj.getRotation()
+        local z = {}
+        for k,vec in ipairs(args) do
+                --print(logString(vec, '\n--- vec'))
+            if vec.rot ~= nil or vec.rotation ~= nil then
+                if vec.rot or vec.rotation then
+                    rotation = convertToVector(vec.rot)
+                    table.insert(z, {pos = convertToVector(vec.pos), rot = rotation})
+                end
+            else
+                table.insert(z, {pos = convertToVector(vec), rot = rotation})
+            end
+        end
+        return z
+    end
+
+    function convertToVector(vec)
+        local vector = 'string'
+        local bracktedNumbers = 'number'
+
+        for k,v in pairs(vec) do
+            if type(k) == bracktedNumbers then
+                return Vector(vec[1],vec[2],vec[3])
+            elseif type(k) == vector then
+                return vec
+            end
+        end
+
+        return false
+    end
+
+    function moveObj(obj, vec)
+        obj.setPositionSmooth(vec.pos)
+        obj.setRotationSmooth(vec.rot)
+    end
+
+    function multiMove(obj, finalFunction, ...)
+    local vectors = {...}  -- Collect all vectors into a table
+
+    local function moveNext(i)
+        if i > #vectors then
+            if finalFunction then
+                Wait.condition(finalFunction, function() return not obj.isSmoothMoving() end)  -- Call the final function after all moves are complete
+            end
+            return
+        end
+
+        moveObj(obj, vectors[i])
+        Wait.condition(function()
+            moveNext(i + 1)  -- Move to the next vector after the current move is complete
+        end, function()
+            return not obj.isSmoothMoving()
+        end)
+    end
+
+    moveNext(1)  -- Start with the first vector
+end
+
+-- Tools -----------------------------------------------------------------------
+function tableSize(t)
+    local count = 0
+    if t ~= nil then
+        for key,value in pairs(t) do count = count + 1 end
+    end
+    return count
+end
+
+return smoothMove

@@ -121,3 +121,66 @@ function tableSize(t)
 end
 
 return smoothMove
+
+--[[
+function runAfterRest(o, f, f2, n)
+  f = f or function() end -- function to run when resting
+  f2 = f2 or function() end -- function to run when time-out is reached
+  n = n or 5 -- time out delay in seconds
+  Wait.frames(function()
+    Wait.condition(
+      function()
+        if o ~= nil then
+          f(o)
+        end
+      end,
+      function()
+        if o == nil then
+          return true
+        else
+          return o.resting
+        end
+      end,
+      n,
+      function()
+        if o ~= nil then
+          f2(o)
+        end
+      end
+    )
+  end,1)
+end
+
+function uninteractableUntilRest(o, f, f2, n)
+  f = f or function() end -- function to run when resting
+  f2 = f2 or function() end -- function to run when time-out is reached
+  n = n or 5 -- time out delay in seconds
+  local currentInteract = o.interactable
+  o.interactable = false
+  Wait.frames(function()
+    Wait.condition(
+      function()
+        if o ~= nil then
+          o.interactable = currentInteract
+          f(o)
+        end
+      end,
+      function()
+        if o == nil then
+          return true
+        else
+          return o.resting
+        end
+      end,
+      n,
+      function()
+        if o ~= nil then
+          o.interactable = currentInteract
+          f2(o)
+        end
+      end
+    )
+  end,1)
+end
+
+]]

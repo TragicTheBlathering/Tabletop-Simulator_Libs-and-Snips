@@ -179,11 +179,14 @@ function uniqueCastLocations(TrashBag, removedDeckList)
     for k,obj in ipairs(TrashBag.getObjects()) do
         if obj.tags[1] then
             local id = setDiscardLocations(obj)
-            if id.validDiscardObj then
-                locaton[id.id] = id.validDiscardObj
+            if id ~= nil then
+                if id.validDiscardObj then
+                    locaton[id.id] = id.validDiscardObj
+                end
             end
         end
     end
+    
 
     for _, deck in ipairs (removedDeckList) do
         for _, card in ipairs(deck.getObjects()) do

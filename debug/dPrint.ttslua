@@ -1,0 +1,36 @@
+local d_print = {}
+
+function d_print.dprint(txt,var)
+    local close = '[-]'
+    local red = '['..Color.fromString("Red"):toHex()..']'
+    local white = '['..Color.fromString("White"):toHex()..']'
+    local orange = '['..Color.fromString("Orange"):toHex()..']'
+
+    local text = txt
+
+    if not txt and not var then
+        print('-------- '..orange..'????'..white..' --------')
+
+    elseif txt and not var then
+
+        if type(txt) == "string" then
+            print('-------- '..orange..txt..white..' --------')
+        else
+            local variable = txt
+            text = '-------- '..orange..tostring(txt)..white..' --------'
+            print(logString(variable, text))
+            print(orange..'----------------------------')
+        end
+
+    elseif txt and var then
+        if type(txt) ~= "string" then
+            print(red..'ERROR : -------- '..white..'Text String must be first!'..red..' --------')
+        else
+            text = '-------- '..orange..txt..white..' --------'
+            print(logString(var, text))
+            print(orange..'----------------------------')
+        end
+    end
+end
+
+return d_print

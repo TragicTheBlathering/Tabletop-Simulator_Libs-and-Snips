@@ -170,6 +170,7 @@ function setIDs(tagList)
             end
             id.discard = true
         elseif string.find(tag, 'DeleteMe', 1, true) then
+            print('!!!')
             id.delete = true
         elseif string.find(tag, 'ID_', 1, true) then
             id.id = tag

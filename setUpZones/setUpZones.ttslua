@@ -1,51 +1,44 @@
 local setUpZones = {}
+local ShowDebug = false
 --------------------------------------------------------------------------------
-function setUpZones.setSetupObjvariable()
-    return setUpZones.findSetUpObjects()
+function setUpZones.allSetUpObjects()
+    local objs = cast()
+    return objs
 end
 
-function setUpZones.getSetupObject(find, setupObjects)
-    for name, obj in pairs(setupObjects) do
-        if string.upper(name) == string.upper(find) then
+function setUpZones.getByTag(find, setupObjects)
+    for k, obj in pairs(setupObjects) do
+        if obj.hasTag(find) then
             return obj
         end
     end
-    return false
+    return 'Not Found'
 end
 
-function setUpZones.findSetUpObjects()
-    local plat = nil
-    for k,v in pairs(getAllObjects()) do
-        if v.hasTag("SetUpZone_Platform") then
-            plat = v
+function setUpZones.getByTag(find, setupObjects)
+    local z = nil
+    for k, obj in pairs(setupObjects) do
+        if obj.hasTag(find) then
+            z = obj
+            break
         end
     end
-
-    local objs = {}
-    if plat ~= nil then
-        for k,o in pairs(cast(plat)) do
-            objs[o.getName()] = o
-        end
-    else
-        broadcastToAll("Error : Can not find SetUp Platform", "Red")
-    end
-
-    return objs
+    return z
 end
 --------------------------------------------------------------------------------
 function setUpZones.test()
     print("--== WORKING (print) ==--")
-    return "--== WORKING (return)==--"
 end
 --------------------------------------------------------------------------------
 -- PRIVATE --
-function cast(plat)
+function cast()
+    local plat = getObjectsWithTag('SetUpZone_Platform')[1]
     local zone = Physics.cast({ origin=plat.getPosition()+Vector(0,1.4,0),
-                                direction={0,1,0},
-                                type=3,
-                                max_distance=0,
-                                size={79.5,3,79.5},
-                                debug=false})
+        direction={0,1,0},
+        type=3,
+        max_distance=0,
+        size={79.5,3,79.5},
+        debug=ShowDebug})
     return processCast(zone, plat)
 end
 
@@ -55,8 +48,6 @@ function processCast(zone, plat)
         local obj = v.hit_object
         if obj ~= plat then
             found[obj] = true
-        else
-            found[obj] = false
         end
     end
 
@@ -66,7 +57,6 @@ function processCast(zone, plat)
             table.insert(validObjs, obj)
         end
     end
-
     return validObjs
 end
 --------------------------------------------------------------------------------

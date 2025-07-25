@@ -88,6 +88,31 @@ function stringUtils.findVectorFrom_string(s)
     end
 end
 
+--------------------------------------------------------------------------------
+--- This searches a list of strings and returns true or flase if
+--- an exact string NOT found in any of the lists
+function isStringInAllLists(allLists, searchString)
+    local result = true
+    local searchLower = searchString:lower() -- Convert the search string to lowercase
+
+    for _, stringList in ipairs(allLists) do
+        local found = false
+
+        for _, str in ipairs(stringList) do
+            if str:lower() == searchLower then -- Compare case-insensitively
+                found = true
+                break
+            end
+        end
+
+        if not found then
+            result = false
+            break
+        end
+    end
+
+    return result
+end
 
 --------------------------------------------------------------------------------
 --- Remove Charicters from front or back of string.

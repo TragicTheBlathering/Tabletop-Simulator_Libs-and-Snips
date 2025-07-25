@@ -1,4 +1,0 @@
-Clear all save data in save file
-
-Search : ^(\s*)"LuaScriptState":(?! "").*$
-Replace : \1"LuaScriptState": "",
